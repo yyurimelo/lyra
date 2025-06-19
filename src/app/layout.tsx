@@ -1,6 +1,7 @@
 import { ModeToggle } from "@lyra/components/mode-toggle";
 import "./globals.css";
 import { ThemeProvider } from "@lyra/components/theme-provider";
+import { Toaster } from "@lyra/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -22,6 +23,7 @@ export default function RootLayout({
               <ModeToggle />
             </div>
             {children}
+            <Toaster />
           </ThemeProvider>
         </body>
       </html>
