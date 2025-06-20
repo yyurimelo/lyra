@@ -1,3 +1,10 @@
+"use client";
+
+import z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
+
 import { cn } from "@lyra/lib/utils";
 import { Button } from "@lyra/components/ui/button";
 import {
@@ -8,61 +15,135 @@ import {
   CardTitle,
 } from "@lyra/components/ui/card";
 import { Input } from "@lyra/components/ui/input";
-import { Label } from "@lyra/components/ui/label";
 import { GoogleAuthButton } from "@lyra/_components/google-auth/page";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@lyra/components/ui/form";
+import { useId, useState } from "react";
+import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+const loginFormSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormSchema = z.infer<typeof loginFormSchema>;
+
+export function LoginForm() {
+  const id = useId();
+  const [isLoading, setIsLoading] = useState(false);
+  const route = useRouter();
+
+  const form = useForm<LoginFormSchema>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  async function handleSubmit(data: LoginFormSchema) {
+    try {
+      setIsLoading(true);
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      setIsLoading(false);
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      toast.success("Login successful!");
+      route.push("/");
+    } catch (error) {
+      setIsLoading(false);
+      toast.error(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    }
+  }
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6")}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome to Lyra</CardTitle>
           <CardDescription>Login with your Google account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="grid gap-6">
-              <div>
-                <GoogleAuthButton />
-              </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
-                </span>
-              </div>
-
-              {/* form login */}
+          <Form {...form}>
+            <form
+              id={id}
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               <div className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                  />
+                <div>
+                  <GoogleAuthButton />
                 </div>
-                <div className="grid gap-3">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                  </div>
-                  <Input id="password" type="password" required />
+                <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                  <span className="bg-card text-muted-foreground relative z-10 px-2">
+                    Or continue with
+                  </span>
                 </div>
-                <Button type="submit" className="w-full">
-                  Login
+
+                {/* form login */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  disabled={isLoading}
+                  form={id}
+                  type="submit"
+                  className="w-full"
+                >
+                  {isLoading && (
+                    <LoaderCircle className="w-4 h-4 text-primary-foreground animate-spin mr-2" />
+                  )}
+                  {isLoading ? "Waiting..." : "Login"}
                 </Button>
+
+                <div className="text-center text-sm">
+                  Don&apos;t have an account?{" "}
+                  <a href="/register" className="underline underline-offset-4">
+                    Sign up
+                  </a>
+                </div>
               </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="/register" className="underline underline-offset-4">
-                  Sign up
-                </a>
-              </div>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

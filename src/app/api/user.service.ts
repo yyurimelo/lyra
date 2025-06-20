@@ -1,7 +1,7 @@
 import { http } from "@lyra/config/http-config/page";
 
 // models
-import { UserFormModel } from "@lyra/common/models/user/user-form";
+import { UserFormModel } from "@lyra/app/types/user/user-form";
 
 export async function createUser({ email, name, password }: UserFormModel) {
   try {

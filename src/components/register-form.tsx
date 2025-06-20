@@ -27,8 +27,8 @@ import {
 import { Input } from "@lyra/components/ui/input";
 
 // services
-import { createUser } from "@lyra/common/api/user.service";
-import InputPassword from "./ui/input-passowrd";
+import { createUser } from "@lyra/app/api/user.service";
+import { InputPassword } from "./ui/input-passowrd";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { GoogleAuthButton } from "@lyra/_components/google-auth/page";

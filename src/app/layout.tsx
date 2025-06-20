@@ -2,6 +2,7 @@ import { ModeToggle } from "@lyra/components/mode-toggle";
 import "./globals.css";
 import { ThemeProvider } from "@lyra/components/theme-provider";
 import { Toaster } from "@lyra/components/ui/sonner";
+import AuthProvider from "@lyra/components/providers/session-provider";
 
 export default function RootLayout({
   children,
@@ -9,10 +10,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <html lang="en" suppressHydrationWarning>
-        <head />
-        <body>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body>
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -25,8 +26,8 @@ export default function RootLayout({
             {children}
             <Toaster />
           </ThemeProvider>
-        </body>
-      </html>
-    </>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

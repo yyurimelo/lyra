@@ -1,14 +1,12 @@
-export default function PublicLayout({
+export default function PrivateLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <>
-      <div>
-        <p>Private</p>
-        {children}
-      </div>
+      <h1>Private Layout</h1>
+      <div>{children}</div>
     </>
   );
 }

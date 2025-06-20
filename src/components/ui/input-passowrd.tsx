@@ -6,12 +6,13 @@ import { cn } from "@lyra/lib/utils";
 
 type Props = {
   id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   field: ControllerRenderProps<any, any>;
   error?: FieldError;
   isConfirm?: boolean;
 };
 
-export default function InputPassword({ id, field, error, isConfirm }: Props) {
+export function InputPassword({ id, field, error, isConfirm }: Props) {
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible((prev) => !prev);
 
