@@ -67,8 +67,9 @@ export function LoginForm() {
     } catch (error) {
       setIsLoading(false);
       toast.error(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+        "Login inválido. Verifique suas credenciais e tente novamente."
       );
+      return error;
     }
   }
 
@@ -76,8 +77,8 @@ export function LoginForm() {
     <div className={cn("flex flex-col gap-6")}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome to Lyra</CardTitle>
-          <CardDescription>Login with your Google account</CardDescription>
+          <CardTitle className="text-xl">Bem-vindo ao Lyra</CardTitle>
+          <CardDescription>Acesse rapidamente com Google</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -92,7 +93,7 @@ export function LoginForm() {
                 </div>
                 <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                   <span className="bg-card text-muted-foreground relative z-10 px-2">
-                    Or continue with
+                    Ou continue com
                   </span>
                 </div>
 
@@ -102,7 +103,7 @@ export function LoginForm() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -115,7 +116,7 @@ export function LoginForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Senha</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" />
                       </FormControl>
@@ -132,13 +133,13 @@ export function LoginForm() {
                   {isLoading && (
                     <LoaderCircle className="w-4 h-4 text-primary-foreground animate-spin mr-2" />
                   )}
-                  {isLoading ? "Waiting..." : "Login"}
+                  {isLoading ? isLoading : "Entrar"}
                 </Button>
 
                 <div className="text-center text-sm">
-                  Don&apos;t have an account?{" "}
+                  Não possui uma conta?{" "}
                   <a href="/register" className="underline underline-offset-4">
-                    Sign up
+                    Registre-se
                   </a>
                 </div>
               </div>

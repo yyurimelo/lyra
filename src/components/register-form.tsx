@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
 // utils
-import { cn } from "@lyra/lib/utils";
 
 // components
 import { Button } from "@lyra/components/ui/button";
@@ -75,13 +74,15 @@ export function RegisterForm() {
     try {
       setIsLoading(true);
       await createUser(data);
-      toast.success("User created successfully!");
+      toast.success("Usuário criado com sucesso!");
       router.push("/sign-in");
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("Failed to create user");
+        toast.error(
+          "Ocorreu um erro ao criar o usuário. Por favor, tente novamente."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -89,11 +90,11 @@ export function RegisterForm() {
   }
 
   return (
-    <div className={cn("flex flex-col gap-6")}>
+    <>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Register on Lyra</CardTitle>
-          <CardDescription>Register with your Google account</CardDescription>
+          <CardTitle className="text-xl">Cadastre-se na Lyra</CardTitle>
+          <CardDescription>Acesse rapidamente com Google</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <div>
@@ -101,7 +102,7 @@ export function RegisterForm() {
           </div>
           <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
             <span className="bg-card text-muted-foreground relative z-10 px-2">
-              Or continue with
+              Ou continue com
             </span>
           </div>
 
@@ -116,7 +117,7 @@ export function RegisterForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Nome de usuário</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -129,7 +130,7 @@ export function RegisterForm() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>E-mail</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -142,7 +143,7 @@ export function RegisterForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Senha</FormLabel>
                     <FormControl>
                       <InputPassword
                         id={id}
@@ -159,7 +160,7 @@ export function RegisterForm() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>Confirmar senha</FormLabel>
                     <FormControl>
                       <InputPassword
                         id={id}
@@ -181,18 +182,18 @@ export function RegisterForm() {
                 {isLoading && (
                   <LoaderCircle className="w-4 h-4 text-primary-foreground animate-spin mr-2" />
                 )}
-                {isLoading ? "Waiting..." : "Register"}
+                {isLoading ? isLoading : "Cadastrar"}
               </Button>
               <div className="text-center text-sm">
-                Already have an account?{" "}
+                Já tem uma conta?{" "}
                 <a href="/sign-in" className="underline underline-offset-4">
-                  Sign in
+                  Entrar
                 </a>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

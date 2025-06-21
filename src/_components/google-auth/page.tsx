@@ -9,7 +9,7 @@ export function GoogleAuthButton() {
           fill="currentColor"
         />
       </svg>
-      Login with Google
+      Entre com sua conta Google
     </Button>
   );
 }
