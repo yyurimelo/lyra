@@ -1,5 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+
 import { NextAuthOptions } from "next-auth";
 import { http } from "@lyra/config/http-config/page";
 
@@ -8,6 +10,11 @@ const authOptions: NextAuthOptions = {
     signIn: "/sign-in",
   },
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -57,6 +64,40 @@ const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        try {
+          const response = await fetch(`${http}/shared/auth/google`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              authProvider: 1,
+            }),
+          });
+
+          if (!response.ok) return false;
+
+          const data = await response.json();
+
+          user.id = data.id;
+          user.name = data.name;
+          user.email = data.email;
+          user.description = data.description;
+          user.userIdentifier = data.userIdentifier;
+          user.appearancePrimaryColor = data.appearancePrimaryColor;
+
+          return true;
+        } catch (error) {
+          console.error("Erro no login com Google:", error);
+          return false;
+        }
+      }
+
+      return true;
+    },
+
     async jwt({ token, user }) {
       return { ...token, ...user };
     },
