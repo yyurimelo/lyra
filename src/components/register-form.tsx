@@ -93,7 +93,7 @@ export function RegisterForm() {
     <>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Cadastre-se na Lyra</CardTitle>
+          <CardTitle className="text-xl">Cadastre-se no Lyra</CardTitle>
           <CardDescription>Acesse rapidamente com Google</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
