@@ -41,6 +41,9 @@ const authOptions: NextAuthOptions = {
               id: user.id,
               email: user.email,
               name: user.name,
+              description: user.description,
+              userIdentifier: user.userIdentifier,
+              appearancePrimaryColor: user.appearancePrimaryColor,
               token: user.token,
             };
           }
@@ -55,10 +58,12 @@ const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
+      return { ...token, ...user };
+    },
+    async session({ session, token }) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      session.user = token as any;
+      return session;
     },
   },
   session: {

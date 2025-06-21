@@ -1,8 +1,8 @@
-import { ModeToggle } from "@lyra/components/mode-toggle";
 import "./globals.css";
 import { ThemeProvider } from "@lyra/components/theme-provider";
 import { Toaster } from "@lyra/components/ui/sonner";
 import AuthProvider from "@lyra/components/providers/session-provider";
+import { Header } from "@lyra/_components/header";
 
 export default function RootLayout({
   children,
@@ -20,9 +20,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="fixed top-4 right-4 z-50">
-              <ModeToggle />
-            </div>
+            <Header />
             {children}
             <Toaster />
           </ThemeProvider>

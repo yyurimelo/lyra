@@ -62,7 +62,7 @@ export function LoginForm() {
         throw new Error(result.error);
       }
 
-      toast.success("Login successful!");
+      toast.success("Usuário autenticado com sucesso!");
       route.push("/");
     } catch (error) {
       setIsLoading(false);
