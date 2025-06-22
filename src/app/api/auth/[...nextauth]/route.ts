@@ -51,6 +51,8 @@ const authOptions: NextAuthOptions = {
               description: user.description,
               userIdentifier: user.userIdentifier,
               appearancePrimaryColor: user.appearancePrimaryColor,
+              appearanceTextPrimaryLight: user.appearanceTextPrimaryLight,
+              appearanceTextPrimaryDark: user.appearanceTextPrimaryDark,
               token: user.token,
             };
           }
@@ -87,6 +89,8 @@ const authOptions: NextAuthOptions = {
           user.description = data.description;
           user.userIdentifier = data.userIdentifier;
           user.appearancePrimaryColor = data.appearancePrimaryColor;
+          user.appearanceTextPrimaryLight = data.appearanceTextPrimaryLight;
+          user.appearanceTextPrimaryDark = data.appearanceTextPrimaryDark;
 
           return true;
         } catch (error) {

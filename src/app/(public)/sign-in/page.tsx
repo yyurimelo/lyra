@@ -4,9 +4,9 @@ import { LoginForm } from "@lyra/components/login-form";
 export default function SignIn() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col">
+      <div className="flex w-full max-w-sm flex-col space-y-4">
         <div className="flex items-center justify-center">
-          <LyraIcon className="size-42" />
+          <LyraIcon height="h-10" />
         </div>
         <LoginForm />
       </div>

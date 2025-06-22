@@ -1,16 +1,36 @@
-"use client";
-
-import { ModeToggle } from "@lyra/components/mode-toggle";
+import { Separator } from "@lyra/components/ui/separator";
 import { HeaderAccount } from "./header-account";
-import { useSession } from "next-auth/react";
+import { ModeToggle } from "@lyra/components/mode-toggle";
+import { MenuLink } from "./menu-link";
+import Search from "@lyra/components/search";
+import { LyraIcon } from "../lyra/lyra-icon";
 
 export function Header() {
-  const { data: session } = useSession();
-
   return (
-    <header className="fixed top-4 right-4 z-50 flex items-center gap-2">
-      <ModeToggle />
-      {session?.user && <HeaderAccount />}
-    </header>
+    <div className="border-b">
+      <div className="flex items-center justify-between px-8">
+        <div className="flex items-center space-x-4">
+          <LyraIcon height="h-8" />
+
+          <Separator orientation="vertical" className="h-6" />
+
+          <nav className="flex items-center space-x-2 lg:space-x-3">
+            <MenuLink href="/">Dashboard</MenuLink>
+            <MenuLink href="/settings/profile">Configurações</MenuLink>
+          </nav>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <Search />
+
+          <Separator orientation="vertical" className="h-6" />
+
+          <Separator orientation="vertical" className="h-6" />
+
+          <ModeToggle />
+          <HeaderAccount />
+        </div>
+      </div>
+    </div>
   );
 }

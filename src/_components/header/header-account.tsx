@@ -1,11 +1,8 @@
 "use client";
 
 // components
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@lyra/components/ui/avatar";
+import { Avatar } from "@lyra/components/ui/avatar";
+import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
 import { Button } from "@lyra/components/ui/button";
 import {
   DropdownMenu,
@@ -16,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@lyra/components/ui/dropdown-menu";
-import { getInitialName } from "@lyra/helpers/get-initial-name";
 import { CircleUser, LogOut } from "lucide-react";
 
 import { signOut, useSession } from "next-auth/react";
@@ -24,8 +20,6 @@ import Link from "next/link";
 
 export function HeaderAccount() {
   const { data: loggedUser } = useSession();
-
-  const initialName = getInitialName(loggedUser?.user.name);
 
   function handleSignOut() {
     signOut();
@@ -36,10 +30,10 @@ export function HeaderAccount() {
       <DropdownMenuTrigger asChild>
         <Button size="icon" variant={"ghost"}>
           <Avatar className="size-8 rounded-full">
-            <AvatarImage alt={loggedUser?.user.name} />
-            <AvatarFallback className="rounded-full bg-primary text-primary-foreground">
-              {initialName}
-            </AvatarFallback>
+            <AvatarImageUser
+              src={loggedUser?.user.image || undefined}
+              alt={loggedUser?.user.name}
+            />
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -52,10 +46,10 @@ export function HeaderAccount() {
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <Avatar className="size-8 rounded-full">
-              <AvatarImage src={""} alt={loggedUser?.user.name} />
-              <AvatarFallback className="rounded-full bg-primary text-primary-foreground">
-                {initialName}
-              </AvatarFallback>
+              <AvatarImageUser
+                src={loggedUser?.user.image || undefined}
+                alt={loggedUser?.user.name}
+              />
             </Avatar>
 
             <div className="grid flex-1 text-left text-sm leading-tight">
