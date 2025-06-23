@@ -47,7 +47,7 @@ export default function Search() {
             size={16}
             aria-hidden="true"
           />
-          <span className="text-muted-foreground/70 font-normal">Search</span>
+          <span className="text-muted-foreground/70 font-normal">Procurar</span>
         </span>
         <kbd className="bg-background text-muted-foreground/70 ms-12 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium">
           ⌘K

@@ -21,12 +21,11 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-4">
+          <Separator orientation="vertical" className="h-6" />
+
+          <Separator orientation="vertical" className="h-6" />
+
           <Search />
-
-          <Separator orientation="vertical" className="h-6" />
-
-          <Separator orientation="vertical" className="h-6" />
-
           <ModeToggle />
           <HeaderAccount />
         </div>
