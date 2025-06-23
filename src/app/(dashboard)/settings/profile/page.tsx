@@ -19,7 +19,7 @@ import { Avatar } from "@lyra/components/ui/avatar";
 import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
 import { Separator } from "@lyra/components/ui/separator";
 import { z } from "zod";
-import { updateUser } from "@lyra/app/api/user.service";
+import { getUser, updateUser } from "@lyra/app/api/user.service";
 import { toast } from "sonner";
 import {
   Form,
@@ -37,6 +37,7 @@ import { Button } from "@lyra/components/ui/button";
 import { Check, LoaderCircle, Pencil, X } from "lucide-react";
 import { Combo } from "@lyra/components/ui/combo";
 import { ColorPicker } from "@lyra/components/ui/color-picker";
+import { hexToOKLCH, oklchToHex } from "@lyra/utils/color";
 
 // -----------------------------------------------------------------------------
 
@@ -44,8 +45,8 @@ const profileFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   appearancePrimaryColor: z.string().optional(),
-  appearanceTextPrimaryLight: z.string().optional(),
-  appearanceTextPrimaryDark: z.string().optional(),
+  appearanceTextPrimaryLight: z.string().nullable().optional(),
+  appearanceTextPrimaryDark: z.string().nullable().optional(),
 });
 
 type ProfileFormSchema = z.infer<typeof profileFormSchema>;
@@ -53,10 +54,10 @@ type ProfileFormSchema = z.infer<typeof profileFormSchema>;
 // -----------------------------------------------------------------------------
 
 export default function SettingsProfile() {
+  const id = useId();
   const [isLoading, setIsLoading] = useState(false);
   const [edit, setEdit] = useState(false);
-  const { data: loggedUser } = useSession();
-  const id = useId();
+  const { data: loggedUser, update } = useSession();
 
   const form = useForm<ProfileFormSchema>({
     resolver: zodResolver(profileFormSchema),
@@ -67,45 +68,101 @@ export default function SettingsProfile() {
     },
   });
 
-  useEffect(() => {
-    if (loggedUser?.user) {
-      form.reset(loggedUser.user);
+  async function loadUserData() {
+    if (!loggedUser?.user?.id) return;
+    try {
+      const user = await getUser(loggedUser.user.id);
+
+      let primaryColorHex = "";
+      if (
+        user.appearancePrimaryColor &&
+        typeof user.appearancePrimaryColor === "string"
+      ) {
+        try {
+          primaryColorHex = oklchToHex(user.appearancePrimaryColor);
+        } catch {
+          primaryColorHex = "";
+        }
+      }
+
+      form.reset({
+        name: user.name,
+        description: user.description || "",
+        appearancePrimaryColor: primaryColorHex,
+        appearanceTextPrimaryLight: user.appearanceTextPrimaryLight || "",
+        appearanceTextPrimaryDark: user.appearanceTextPrimaryDark || "",
+      });
+    } catch (err) {
+      console.error("Erro ao buscar usuário:", err);
+      toast.error("Erro ao carregar dados do usuário.");
     }
-  }, [form, loggedUser]);
+  }
+
+  useEffect(() => {
+    loadUserData();
+  }, [loggedUser?.user?.id]);
 
   function handleEdit() {
     setEdit(true);
   }
 
-  function handleCancelEdit() {
+  async function handleCancelEdit() {
+    await loadUserData();
     setEdit(false);
-    form.reset({
-      name: loggedUser?.user.name,
-      description: loggedUser?.user.description,
-      appearancePrimaryColor: loggedUser?.user.appearancePrimaryColor,
-      appearanceTextPrimaryLight: loggedUser?.user.appearanceTextPrimaryLight,
-      appearanceTextPrimaryDark: loggedUser?.user.appearanceTextPrimaryDark,
-    });
   }
 
   async function handleSubmit(data: ProfileFormSchema) {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       await updateUser({
         id: loggedUser!.user.id,
         name: data.name,
         description: data.description,
-        appearancePrimaryColor: data.appearancePrimaryColor,
-        appearanceTextPrimaryLight: data.appearanceTextPrimaryLight,
-        appearanceTextPrimaryDark: data.appearanceTextPrimaryDark,
+        appearancePrimaryColor: hexToOKLCH(String(data.appearancePrimaryColor)),
+        appearanceTextPrimaryLight:
+          data.appearanceTextPrimaryLight ?? undefined,
+        appearanceTextPrimaryDark: data.appearanceTextPrimaryDark ?? undefined,
+        token: loggedUser?.user.token,
       });
+
+      document.documentElement.style.setProperty(
+        "--primary",
+        data.appearancePrimaryColor || "#000000"
+      );
+
+      const isDark = document.documentElement.classList.contains("dark");
+
+      if (isDark) {
+        document.documentElement.style.setProperty(
+          "--primary-foreground",
+          data.appearanceTextPrimaryDark || "#ffffff"
+        );
+      } else {
+        document.documentElement.style.setProperty(
+          "--primary-foreground",
+          data.appearanceTextPrimaryLight || "#000000"
+        );
+      }
+
+      setEdit(false);
       toast.success("Perfil atualizado com sucesso!");
+
+      await update({
+        name: data.name,
+        description: data.description,
+        appearancePrimaryColor: hexToOKLCH(String(data.appearancePrimaryColor)),
+        appearanceTextPrimaryLight:
+          data.appearanceTextPrimaryLight ?? undefined,
+        appearanceTextPrimaryDark: data.appearanceTextPrimaryDark ?? undefined,
+      });
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("Ocorreu um erro ao atualizar o perfil.");
       }
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -247,8 +304,11 @@ export default function SettingsProfile() {
                           field.onChange(selectedValue);
                         }}
                         itens={[
-                          { label: "Branco", value: "0, 0.0%, 100.0%" },
-                          { label: "Preto", value: "0, 0.0%, 0.0%" },
+                          {
+                            label: "Branco",
+                            value: "oklch(1.000 0.000 89.876)",
+                          },
+                          { label: "Preto", value: "oklch(0.000 0.000 0.000)" },
                         ]}
                         disabled={!edit}
                       />
@@ -275,8 +335,11 @@ export default function SettingsProfile() {
                           field.onChange(selectedValue);
                         }}
                         itens={[
-                          { label: "Branco", value: "0, 0.0%, 100.0%" },
-                          { label: "Preto", value: "0, 0.0%, 0.0%" },
+                          {
+                            label: "Branco",
+                            value: "oklch(1.000 0.000 89.876)",
+                          },
+                          { label: "Preto", value: "oklch(0.000 0.000 0.000)" },
                         ]}
                         disabled={!edit}
                       />
@@ -297,7 +360,7 @@ export default function SettingsProfile() {
                     <FormControl>
                       <div className="flex gap-3 w-full">
                         <Input
-                          className="h-10 w-full"
+                          className=" w-full"
                           placeholder="Informe o hexadecimal"
                           type="text"
                           {...field}

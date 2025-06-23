@@ -5,5 +5,7 @@ export type UserDataModel = {
   description?: string | null;
   userIdentifier: string;
   appearancePrimaryColor?: string | null;
+  appearanceTextPrimaryLight?: string | null;
+  appearanceTextPrimaryDark?: string | null;
   createdAt: string;
 };

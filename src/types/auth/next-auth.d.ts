@@ -9,6 +9,7 @@ declare module "next-auth" {
     appearanceTextPrimaryLight?: string;
     appearanceTextPrimaryDark?: string;
     userIdentifier: string;
+    token: string;
   }
 
   interface Session extends DefaultSession {

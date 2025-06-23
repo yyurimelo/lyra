@@ -1,4 +1,5 @@
 import { http } from "@lyra/config/http-config/page";
+import { UserDataModel } from "@lyra/types/user/user-data";
 
 // models
 import { UserFormModel } from "@lyra/types/user/user-form";
@@ -31,13 +32,16 @@ export async function updateUser({
   appearancePrimaryColor,
   appearanceTextPrimaryLight,
   appearanceTextPrimaryDark,
-}: UserUpdateModel) {
+  token,
+}: UserUpdateModel & { token: string | undefined }) {
   try {
-    const response = await fetch(`${prefix}/update`, {
+    const response = await fetch(`${prefix}/update?id=${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        id,
         name,
         description,
         appearancePrimaryColor,
@@ -46,12 +50,29 @@ export async function updateUser({
       }),
     });
 
+    if (response.status === 204) {
+      return null;
+    }
+
     const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(data?.message);
+      throw new Error(data?.message || "Erro ao atualizar o usuário.");
     }
     return data;
   } catch (error) {
     throw error;
   }
+}
+
+export async function getUser(id: string): Promise<UserDataModel> {
+  const response = await fetch(`${prefix}/get/${id}`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error?.message || "Erro ao buscar usuário.");
+  }
+
+  const data = await response.json();
+  return data;
 }

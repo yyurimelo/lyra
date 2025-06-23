@@ -2,6 +2,7 @@ import "./globals.css";
 import { ThemeProvider } from "@lyra/components/theme-provider";
 import { Toaster } from "@lyra/components/ui/sonner";
 import AuthProvider from "@lyra/components/providers/session-provider";
+import DynamicPrimaryColor from "@lyra/_components/dynaminc-primary-color";
 
 export default function RootLayout({
   children,
@@ -19,6 +20,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <DynamicPrimaryColor />
             {children}
             <Toaster />
           </ThemeProvider>

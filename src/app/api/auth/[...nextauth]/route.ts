@@ -91,6 +91,7 @@ const authOptions: NextAuthOptions = {
           user.appearancePrimaryColor = data.appearancePrimaryColor;
           user.appearanceTextPrimaryLight = data.appearanceTextPrimaryLight;
           user.appearanceTextPrimaryDark = data.appearanceTextPrimaryDark;
+          user.token = data.token;
 
           return true;
         } catch (error) {
@@ -102,8 +103,36 @@ const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user }) {
-      return { ...token, ...user };
+    async jwt({ token, user, trigger, session }) {
+      // Login inicial
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.picture = user.image;
+        token.token = user.token;
+        token.image = user.image;
+        token.description = user.description;
+        token.userIdentifier = user.userIdentifier;
+        token.appearancePrimaryColor = user.appearancePrimaryColor;
+        token.appearanceTextPrimaryLight = user.appearanceTextPrimaryLight;
+        token.appearanceTextPrimaryDark = user.appearanceTextPrimaryDark;
+      }
+
+      // Quando chamar `update()` com `useSession().update({...})`
+      if (trigger === "update" && session) {
+        token.name = session.name ?? token.name;
+        token.description = session.description ?? token.description;
+        token.picture = user.image;
+        token.appearancePrimaryColor =
+          session.appearancePrimaryColor ?? token.appearancePrimaryColor;
+        token.appearanceTextPrimaryLight =
+          session.appearanceTextPrimaryLight ??
+          token.appearanceTextPrimaryLight;
+        token.appearanceTextPrimaryDark =
+          session.appearanceTextPrimaryDark ?? token.appearanceTextPrimaryDark;
+      }
+
+      return token;
     },
     async session({ session, token }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
