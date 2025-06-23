@@ -1,4 +1,4 @@
-import { LyraChatIcon } from "@lyra/_components/lyra/lyra-chat-icon";
+import { LyraChatIcon } from "@lyra/app/_components/lyra/lyra-chat-icon";
 import { RegisterForm } from "@lyra/components/register-form";
 
 export default function Register() {

@@ -1,5 +1,5 @@
-import AppearanceUserSettings from "@lyra/_components/dynaminc-primary-color";
-import { Header } from "@lyra/_components/header";
+import AppearanceUserSettings from "@lyra/app/_components/dynaminc-primary-color";
+import { Header } from "@lyra/app/_components/header";
 
 export default function PrivateLayout({
   children,

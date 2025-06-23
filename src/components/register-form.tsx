@@ -30,7 +30,7 @@ import { createUser } from "@lyra/app/api/user.service";
 import { InputPassword } from "./ui/input-passowrd";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import { GoogleAuthButton } from "@lyra/_components/google-auth/page";
+import { GoogleAuthButton } from "@lyra/app/_components/google-auth/page";
 
 // -----------------------------------------------------------------------------
 

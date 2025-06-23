@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@lyra/components/ui/card";
 import { Input } from "@lyra/components/ui/input";
-import { GoogleAuthButton } from "@lyra/_components/google-auth/page";
+import { GoogleAuthButton } from "@lyra/app/_components/google-auth/page";
 import {
   Form,
   FormControl,

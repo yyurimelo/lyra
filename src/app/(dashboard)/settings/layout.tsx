@@ -1,6 +1,6 @@
 import { ChevronRight, User2 } from "lucide-react";
 
-import { AsideLink } from "@lyra/_components/aside-link";
+import { AsideLink } from "@lyra/app/_components/aside-link";
 
 export default function SettingsLayout({
   children,
