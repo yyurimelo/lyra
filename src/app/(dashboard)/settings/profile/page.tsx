@@ -65,6 +65,8 @@ export default function SettingsProfile() {
       name: "",
       description: "",
       appearancePrimaryColor: "",
+      appearanceTextPrimaryLight: "",
+      appearanceTextPrimaryDark: "",
     },
   });
 
