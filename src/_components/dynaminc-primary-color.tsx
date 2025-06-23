@@ -4,7 +4,7 @@ import { getUser } from "@lyra/app/api/user.service";
 import { oklchToHex } from "@lyra/utils/color";
 import { useSession } from "next-auth/react";
 
-export default function DynamicPrimaryColor() {
+export default function AppearanceUserSettings() {
   const { data: session } = useSession();
 
   useEffect(() => {

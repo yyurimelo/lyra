@@ -73,22 +73,10 @@ export default function SettingsProfile() {
     try {
       const user = await getUser(loggedUser.user.id);
 
-      let primaryColorHex = "";
-      if (
-        user.appearancePrimaryColor &&
-        typeof user.appearancePrimaryColor === "string"
-      ) {
-        try {
-          primaryColorHex = oklchToHex(user.appearancePrimaryColor);
-        } catch {
-          primaryColorHex = "";
-        }
-      }
-
       form.reset({
         name: user.name,
         description: user.description || "",
-        appearancePrimaryColor: primaryColorHex,
+        appearancePrimaryColor: oklchToHex(String(user.appearancePrimaryColor)),
         appearanceTextPrimaryLight: user.appearanceTextPrimaryLight || "",
         appearanceTextPrimaryDark: user.appearanceTextPrimaryDark || "",
       });
