@@ -266,7 +266,7 @@ export default function SettingsProfile() {
               <div className="space-y-2">
                 <CardTitle>Aparência</CardTitle>
                 <CardDescription>
-                  Personalize a aparência do seu perfil
+                  Personalize a aparência da sua dashboard
                 </CardDescription>
               </div>
             </section>
