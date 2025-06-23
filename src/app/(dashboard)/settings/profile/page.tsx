@@ -57,7 +57,7 @@ export default function SettingsProfile() {
   const id = useId();
   const [isLoading, setIsLoading] = useState(false);
   const [edit, setEdit] = useState(false);
-  const { data: loggedUser, update } = useSession();
+  const { data: loggedUser } = useSession();
 
   const form = useForm<ProfileFormSchema>({
     resolver: zodResolver(profileFormSchema),
@@ -75,12 +75,17 @@ export default function SettingsProfile() {
     try {
       const user = await getUser(loggedUser.user.id);
 
+      console.log(user);
+
       form.reset({
         name: user.name,
         description: user.description || "",
-        appearancePrimaryColor: oklchToHex(String(user.appearancePrimaryColor)),
-        appearanceTextPrimaryLight: user.appearanceTextPrimaryLight || "",
-        appearanceTextPrimaryDark: user.appearanceTextPrimaryDark || "",
+        appearancePrimaryColor: user.appearancePrimaryColor
+          ? oklchToHex(String(user.appearancePrimaryColor))
+          : "",
+        appearanceTextPrimaryLight:
+          user.appearanceTextPrimaryLight || undefined,
+        appearanceTextPrimaryDark: user.appearanceTextPrimaryDark || undefined,
       });
     } catch (err) {
       console.error("Erro ao buscar usuário:", err);
@@ -90,7 +95,7 @@ export default function SettingsProfile() {
 
   useEffect(() => {
     loadUserData();
-  }, [loggedUser?.user?.id]);
+  }, [loggedUser?.user!.id]);
 
   function handleEdit() {
     setEdit(true);
@@ -136,15 +141,6 @@ export default function SettingsProfile() {
 
       setEdit(false);
       toast.success("Perfil atualizado com sucesso!");
-
-      await update({
-        name: data.name,
-        description: data.description,
-        appearancePrimaryColor: hexToOKLCH(String(data.appearancePrimaryColor)),
-        appearanceTextPrimaryLight:
-          data.appearanceTextPrimaryLight ?? undefined,
-        appearanceTextPrimaryDark: data.appearanceTextPrimaryDark ?? undefined,
-      });
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
