@@ -21,7 +21,7 @@ export default function SettingsLayout({
                 Geral
               </span>
               <AsideLink href="/settings/profile">
-                <User2 className="mr-2 size-4" />
+                <User2 className="mr-2 size-4 text-primary" />
                 Perfil
                 <ChevronRight className="h-4 w-4 ml-auto" />
               </AsideLink>

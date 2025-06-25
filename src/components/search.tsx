@@ -1,39 +1,52 @@
 "use client";
 
-import * as React from "react";
-import {
-  ArrowUpRightIcon,
-  CircleFadingPlusIcon,
-  FileInputIcon,
-  FolderPlusIcon,
-  SearchIcon,
-} from "lucide-react";
-
+import { User, SearchIcon } from "lucide-react";
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
+  CommandEmpty,
 } from "@lyra/components/ui/command";
+import { UserSearchDataModel } from "@lyra/types/user/user-search-data";
+import { searchUserByUserIdentifier } from "@lyra/app/api/user.service";
+import { useEffect, useState } from "react";
 
 export default function Search() {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<UserSearchDataModel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (searchQuery.trim().length < 6) {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const data = await searchUserByUserIdentifier(searchQuery);
+        const results = Array.isArray(data) ? data : [data];
+        setSearchResults(
+          results.filter(
+            (user) =>
+              user && typeof user === "object" && "userIdentifier" in user
+          )
+        );
+      } catch (error) {
+        console.log("Error fetching search results:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+    const debounceTimer = setTimeout(searchUsers, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   return (
     <>
@@ -53,66 +66,34 @@ export default function Search() {
           ⌘K
         </kbd>
       </button>
+
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
+        <CommandInput
+          placeholder="Buscar usuários..."
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+        />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Quick start">
-            <CommandItem>
-              <FolderPlusIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>New folder</span>
-              <CommandShortcut className="justify-center">⌘N</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <FileInputIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Import document</span>
-              <CommandShortcut className="justify-center">⌘I</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <CircleFadingPlusIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Add block</span>
-              <CommandShortcut className="justify-center">⌘B</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Navigation">
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to dashboard</span>
-            </CommandItem>
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to apps</span>
-            </CommandItem>
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to connections</span>
-            </CommandItem>
-          </CommandGroup>
+          {searchResults.length > 0 ? (
+            <CommandGroup heading="Usuários">
+              {searchResults.map((user) => (
+                <CommandItem
+                  key={user.userIdentifier}
+                  value={user.userIdentifier}
+                  onSelect={() => setOpen(false)}
+                >
+                  <User className="me-2 h-4 w-4" />
+                  {user.name || user.userIdentifier}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : (
+            <CommandEmpty>
+              {isLoading
+                ? "Nenhum usuário encontrado."
+                : "Nenhum usuário encontrado."}
+            </CommandEmpty>
+          )}
         </CommandList>
       </CommandDialog>
     </>

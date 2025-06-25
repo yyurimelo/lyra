@@ -3,6 +3,7 @@ import { UserDataModel } from "@lyra/types/user/user-data";
 
 // models
 import { UserFormModel } from "@lyra/types/user/user-form";
+import { UserSearchDataModel } from "@lyra/types/user/user-search-data";
 import { UserUpdateModel } from "@lyra/types/user/user-update";
 
 const prefix = `${http}/user`;
@@ -67,6 +68,22 @@ export async function updateUser({
 
 export async function getUser(id: string): Promise<UserDataModel> {
   const response = await fetch(`${prefix}/get/${id}`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error?.message || "Erro ao buscar usuário.");
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+export async function searchUserByUserIdentifier(
+  userIdentifier: string
+): Promise<UserSearchDataModel> {
+  const response = await fetch(
+    `${prefix}/get/search?userIdentifier=${userIdentifier}`
+  );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));

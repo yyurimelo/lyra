@@ -74,9 +74,6 @@ export default function SettingsProfile() {
     if (!loggedUser?.user?.id) return;
     try {
       const user = await getUser(loggedUser.user.id);
-
-      console.log(user);
-
       form.reset({
         name: user.name,
         description: user.description || "",
