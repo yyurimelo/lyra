@@ -1,6 +1,10 @@
 "use client";
+import { useEffect, useState } from "react";
 
+// icons
 import { SearchIcon } from "lucide-react";
+
+// components
 import {
   CommandDialog,
   CommandGroup,
@@ -9,17 +13,21 @@ import {
   CommandList,
   CommandEmpty,
 } from "@lyra/components/ui/command";
-import { UserSearchDataModel } from "@lyra/types/user/user-search-data";
-import { searchUserByUserIdentifier } from "@lyra/app/api/user.service";
-import { useEffect, useState } from "react";
-import { AvatarImageUser } from "./ui/avatar-image-user";
-import { Avatar } from "./ui/avatar";
+import { UserDataModel } from "@lyra/types/user/user-data";
+import { Avatar } from "@lyra/components/ui/avatar";
+import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
 
-export default function Search() {
+// services
+import { searchUserByUserIdentifier } from "@lyra/app/api/user.service";
+import { UserSearchDetails } from "@lyra/app/(dashboard)/settings/profile/user-search-details";
+
+export default function SearchUser() {
   const [open, setOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<UserSearchDataModel[]>([]);
+  const [searchResults, setSearchResults] = useState<UserDataModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserDataModel | null>(null);
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -82,12 +90,16 @@ export default function Search() {
                 <CommandItem
                   key={user.userIdentifier}
                   value={user.userIdentifier}
-                  onSelect={() => setOpen(false)}
+                  onSelect={() => {
+                    setSelectedUser(user);
+                    setOpenDialog(true);
+                  }}
                 >
                   <Avatar>
                     <AvatarImageUser
-                      src={user.avatarUser}
+                      src={user.avatarUser ?? ""}
                       alt={`Avatar de ${user.name}`}
+                      name={user.name}
                     />
                   </Avatar>
                   {user.name}
@@ -103,6 +115,13 @@ export default function Search() {
           )}
         </CommandList>
       </CommandDialog>
+      {selectedUser && (
+        <UserSearchDetails
+          open={openDialog}
+          setOpen={setOpenDialog}
+          user={selectedUser}
+        />
+      )}
     </>
   );
 }

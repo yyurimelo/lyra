@@ -1,9 +1,8 @@
 import { http } from "@lyra/config/http-config/page";
-import { UserDataModel } from "@lyra/types/user/user-data";
 
 // models
+import { UserDataModel } from "@lyra/types/user/user-data";
 import { UserFormModel } from "@lyra/types/user/user-form";
-import { UserSearchDataModel } from "@lyra/types/user/user-search-data";
 import { UserUpdateModel } from "@lyra/types/user/user-update";
 
 const prefix = `${http}/user`;
@@ -80,7 +79,7 @@ export async function getUser(id: string): Promise<UserDataModel> {
 
 export async function searchUserByUserIdentifier(
   userIdentifier: string
-): Promise<UserSearchDataModel> {
+): Promise<UserDataModel> {
   const response = await fetch(
     `${prefix}/get/search?userIdentifier=${userIdentifier}`
   );

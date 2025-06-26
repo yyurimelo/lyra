@@ -224,7 +224,7 @@ export default function SettingsProfile() {
                   />
                 </Avatar>
                 <div className="flex items-center gap-2">
-                  Id:{" "}
+                  ID:{" "}
                   {abbreviateUserIdentifier(
                     loggedUser?.user.userIdentifier || ""
                   )}

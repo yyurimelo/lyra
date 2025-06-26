@@ -2,8 +2,9 @@ import { Separator } from "@lyra/components/ui/separator";
 import { HeaderAccount } from "./header-account";
 import { ModeToggle } from "@lyra/components/mode-toggle";
 import { MenuLink } from "./menu-link";
-import Search from "@lyra/components/search";
 import { LyraIcon } from "../lyra/lyra-icon";
+import SearchUser from "./search-user";
+import { Notification } from "./notification/page";
 
 export function Header() {
   return (
@@ -25,7 +26,8 @@ export function Header() {
 
           <Separator orientation="vertical" className="h-6" />
 
-          <Search />
+          <SearchUser />
+          <Notification />
           <ModeToggle />
           <HeaderAccount />
         </div>
