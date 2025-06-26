@@ -12,12 +12,13 @@ type Props = {
 export function AvatarImageUser({ src, alt, className }: Props) {
   const { data: loggedUser } = useSession();
   const initialName = getInitialName(loggedUser?.user.name);
+
   return (
     <>
       {src && alt ? (
         <AvatarImage
           alt={alt}
-          src={src || ""}
+          src={src}
           className={cn(className ? className : "")}
         />
       ) : (

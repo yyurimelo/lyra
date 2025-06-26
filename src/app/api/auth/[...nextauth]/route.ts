@@ -75,6 +75,7 @@ const authOptions: NextAuthOptions = {
             body: JSON.stringify({
               email: user.email,
               name: user.name,
+              image: user.image || "",
               authProvider: 1,
             }),
           });

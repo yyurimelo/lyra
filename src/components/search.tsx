@@ -1,6 +1,6 @@
 "use client";
 
-import { User, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import {
   CommandDialog,
   CommandGroup,
@@ -12,6 +12,8 @@ import {
 import { UserSearchDataModel } from "@lyra/types/user/user-search-data";
 import { searchUserByUserIdentifier } from "@lyra/app/api/user.service";
 import { useEffect, useState } from "react";
+import { AvatarImageUser } from "./ui/avatar-image-user";
+import { Avatar } from "./ui/avatar";
 
 export default function Search() {
   const [open, setOpen] = useState(false);
@@ -82,8 +84,13 @@ export default function Search() {
                   value={user.userIdentifier}
                   onSelect={() => setOpen(false)}
                 >
-                  <User className="me-2 h-4 w-4" />
-                  {user.name || user.userIdentifier}
+                  <Avatar>
+                    <AvatarImageUser
+                      src={user.avatarUser}
+                      alt={`Avatar de ${user.name}`}
+                    />
+                  </Avatar>
+                  {user.name}
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { hexToOKLCH, oklchToHex } from "@lyra/utils/color";
 
 // helpers
 import { isHexColor } from "@lyra/helpers/hex-format";
@@ -32,12 +33,12 @@ import {
 import { Input } from "@lyra/components/ui/input";
 import { Textarea } from "@lyra/components/ui/textarea";
 import { Button } from "@lyra/components/ui/button";
+import { Combo } from "@lyra/components/ui/combo";
+import { ColorPicker } from "@lyra/components/ui/color-picker";
+import { ClickCopy } from "@lyra/components/ui/click-copy";
 
 // icons
 import { Check, LoaderCircle, Pencil, X } from "lucide-react";
-import { Combo } from "@lyra/components/ui/combo";
-import { ColorPicker } from "@lyra/components/ui/color-picker";
-import { hexToOKLCH, oklchToHex } from "@lyra/utils/color";
 
 // -----------------------------------------------------------------------------
 
@@ -149,6 +150,10 @@ export default function SettingsProfile() {
     }
   }
 
+  function abbreviateUserIdentifier(identifier: string) {
+    return identifier.length > 6 ? `${identifier.slice(-6)}` : identifier;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -209,14 +214,28 @@ export default function SettingsProfile() {
 
             <Separator className="my-4" />
 
-            <section className="inline-block space-y-2">
-              <Avatar className="size-16 overflow-visible">
-                <AvatarImageUser
-                  src={loggedUser?.user.image || undefined}
-                  alt={loggedUser?.user.name}
-                  className="rounded-full"
-                />
-              </Avatar>
+            <section className=" space-y-2">
+              <div className="flex items-center w-full justify-between">
+                <Avatar className="size-16 overflow-visible">
+                  <AvatarImageUser
+                    src={loggedUser?.user.image || undefined}
+                    alt={loggedUser?.user.name}
+                    className="rounded-full"
+                  />
+                </Avatar>
+                <div className="flex items-center gap-2">
+                  Id:{" "}
+                  {abbreviateUserIdentifier(
+                    loggedUser?.user.userIdentifier || ""
+                  )}
+                  <ClickCopy
+                    content={abbreviateUserIdentifier(
+                      loggedUser?.user.userIdentifier || ""
+                    )}
+                    variant={"ghost"}
+                  />
+                </div>
+              </div>
             </section>
 
             <section className="space-y-4 w-[400px]">
