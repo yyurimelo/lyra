@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 import { Bell } from "@phosphor-icons/react";
 
 import { Badge } from "@lyra/components/ui/badge";
@@ -10,63 +12,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@lyra/components/ui/popover";
-
-const initialNotifications = [
-  {
-    id: 1,
-    image: "/avatar-80-01.jpg",
-    user: "Chris Tompson",
-    action: "requested review on",
-    target: "PR #42: Feature implementation",
-    timestamp: "15 minutes ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    image: "/avatar-80-02.jpg",
-    user: "Emma Davis",
-    action: "shared",
-    target: "New component library",
-    timestamp: "45 minutes ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    image: "/avatar-80-03.jpg",
-    user: "James Wilson",
-    action: "assigned you to",
-    target: "API integration task",
-    timestamp: "4 hours ago",
-    unread: false,
-  },
-  {
-    id: 4,
-    image: "/avatar-80-04.jpg",
-    user: "Alex Morgan",
-    action: "replied to your comment in",
-    target: "Authentication flow",
-    timestamp: "12 hours ago",
-    unread: false,
-  },
-  {
-    id: 5,
-    image: "/avatar-80-05.jpg",
-    user: "Sarah Chen",
-    action: "commented on",
-    target: "Dashboard redesign",
-    timestamp: "2 days ago",
-    unread: false,
-  },
-  {
-    id: 6,
-    image: "/avatar-80-06.jpg",
-    user: "Miky Derya",
-    action: "mentioned you in",
-    target: "Origin UI open graph image",
-    timestamp: "2 weeks ago",
-    unread: false,
-  },
-];
+import { useSession } from "next-auth/react";
+import { useNotificationHub } from "@lyra/hooks/use-notification-hub";
+import { notificationTypeIconMap } from "@lyra/app/_mappers/notification-type-icon-map";
+import { notificationTypeMap } from "@lyra/app/_mappers/notification-type-map";
 
 function Dot({ className }: { className?: string }) {
   return (
@@ -85,27 +34,11 @@ function Dot({ className }: { className?: string }) {
 }
 
 export function Notification() {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const { data: session } = useSession();
+  const token = session?.user.token;
+
+  const { notifications, markAllAsRead } = useNotificationHub(token!);
   const unreadCount = notifications.filter((n) => n.unread).length;
-
-  const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({
-        ...notification,
-        unread: false,
-      }))
-    );
-  };
-
-  const handleNotificationClick = (id: number) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification.id === id
-          ? { ...notification, unread: false }
-          : notification
-      )
-    );
-  };
 
   return (
     <Popover>
@@ -124,15 +57,15 @@ export function Notification() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-1">
-        <div className="flex items-baseline justify-between gap-4 px-3 py-2">
-          <div className="text-sm font-semibold">Notifications</div>
+      <PopoverContent className="w-80 p-1 mr-2">
+        <div className="flex items-baseline justify-between gap-4 px-4 py-2">
+          <div className="text-sm font-semibold">Notificações</div>
           {unreadCount > 0 && (
             <button
               className="text-xs font-medium hover:underline"
-              onClick={handleMarkAllAsRead}
+              onClick={markAllAsRead}
             >
-              Mark all as read
+              Marcar todas como lidas
             </button>
           )}
         </div>
@@ -141,45 +74,76 @@ export function Notification() {
           aria-orientation="horizontal"
           className="bg-border -mx-1 my-1 h-px"
         ></div>
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className="hover:bg-accent rounded-md px-3 py-2 text-sm transition-colors"
-          >
-            <div className="relative flex items-start gap-3 pe-3">
-              <img
-                className="size-9 rounded-md"
-                src={notification.image}
-                width={32}
-                height={32}
-                alt={notification.user}
-              />
-              <div className="flex-1 space-y-1">
-                <button
-                  className="text-foreground/80 text-left after:absolute after:inset-0"
-                  onClick={() => handleNotificationClick(notification.id)}
-                >
-                  <span className="text-foreground font-medium hover:underline">
-                    {notification.user}
-                  </span>{" "}
-                  {notification.action}{" "}
-                  <span className="text-foreground font-medium hover:underline">
-                    {notification.target}
-                  </span>
-                  .
-                </button>
-                <div className="text-muted-foreground text-xs">
-                  {notification.timestamp}
+        {notifications.length === 0 ? (
+          <div className="flex flex-col text-center items-center text-sm text-muted-foreground px-4 gap-2 py-6">
+            <Bell className="size-8" weight="duotone" />
+            Você não tem novas notificações
+          </div>
+        ) : (
+          notifications.map((notification) => {
+            const { id, type, content, unread, data, createdAt } = notification;
+            const Icon = notificationTypeIconMap[type];
+
+            return (
+              <div
+                key={id}
+                className="hover:bg-accent rounded-md px-4 py-2 text-sm transition-colors"
+              >
+                <div className="relative flex items-start gap-3 pe-3">
+                  <div className="flex-1 space-y-1">
+                    {type === "InviteFriend" ? (
+                      <button
+                        className="text-left text-foreground/80 after:absolute after:inset-0"
+                        onClick={() => {
+                          if (data?.requestId) {
+                            console.log(
+                              "Abrir detalhes da solicitação:",
+                              data.requestId
+                            );
+                          }
+                        }}
+                      >
+                        {content}
+                      </button>
+                    ) : (
+                      <div className="flex space-x-2 w-full">
+                        <Icon
+                          size={21}
+                          className="text-primary flex-shrink-0"
+                        />
+                        <div className="flex flex-col gap-[2px] flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-primary">
+                              {notificationTypeMap[type] || "Notificação"}
+                            </span>
+                            <Dot className="text-muted-foreground/50 size-[3px]" />
+                            <span className="text-muted-foreground/80 text-[11px]">
+                              {createdAt
+                                ? formatDistanceToNow(new Date(createdAt), {
+                                    locale: ptBR,
+                                    addSuffix: true,
+                                  })
+                                : "Agora"}
+                            </span>
+                          </div>
+                          <span className="text-sm text-foreground break-words">
+                            {content || "Sem conteúdo"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {unread && (
+                    <div className="absolute end-0 self-center">
+                      <Dot />
+                    </div>
+                  )}
                 </div>
               </div>
-              {notification.unread && (
-                <div className="absolute end-0 self-center">
-                  <Dot />
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+            );
+          })
+        )}
       </PopoverContent>
     </Popover>
   );

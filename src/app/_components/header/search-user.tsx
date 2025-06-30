@@ -100,6 +100,7 @@ export default function SearchUser() {
                       src={user.avatarUser ?? ""}
                       alt={`Avatar de ${user.name}`}
                       name={user.name}
+                      appearancePrimaryColor={user.appearancePrimaryColor ?? ""}
                     />
                   </Avatar>
                   {user.name}

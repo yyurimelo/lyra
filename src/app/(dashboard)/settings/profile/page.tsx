@@ -111,7 +111,9 @@ export default function SettingsProfile() {
         id: loggedUser!.user.id,
         name: data.name,
         description: data.description,
-        appearancePrimaryColor: hexToOKLCH(String(data.appearancePrimaryColor)),
+        appearancePrimaryColor: data.appearancePrimaryColor?.trim()
+          ? hexToOKLCH(data.appearancePrimaryColor)
+          : undefined,
         appearanceTextPrimaryLight:
           data.appearanceTextPrimaryLight ?? undefined,
         appearanceTextPrimaryDark: data.appearanceTextPrimaryDark ?? undefined,
@@ -120,7 +122,7 @@ export default function SettingsProfile() {
 
       document.documentElement.style.setProperty(
         "--primary",
-        data.appearancePrimaryColor || "#000000"
+        data.appearancePrimaryColor || ""
       );
 
       const isDark = document.documentElement.classList.contains("dark");

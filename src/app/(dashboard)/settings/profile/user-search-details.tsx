@@ -66,6 +66,8 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
               <AvatarImageUser
                 src={user.avatarUser ?? ""}
                 alt={user.avatarUser ?? ""}
+                name={user.name}
+                appearancePrimaryColor={user.appearancePrimaryColor ?? ""}
               />
             </Avatar>
             <div className="flex flex-col ml-4 space-y-1">
