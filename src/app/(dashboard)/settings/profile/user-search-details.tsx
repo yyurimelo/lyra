@@ -32,6 +32,8 @@ import {
 
 import { UserDataModel } from "@lyra/types/user/user-data";
 import { UserRoundPlus, UserRoundX, UserRoundCheck } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type Props = {
   open: boolean;
@@ -45,7 +47,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
   const loggedUserId = session?.user.userIdentifier;
   const token = session?.user.token;
 
-  const [pendingRequest, setPendingRequest] = useState<any | null>(null);
+  const [request, setRequest] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const loggedUserIsMe = loggedUserId === user.userIdentifier;
@@ -58,22 +60,20 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
             userIdentifier: user.userIdentifier,
             token,
           });
-          setPendingRequest(request);
+          setRequest(request);
         } catch (error) {
           if (error instanceof Error) {
             toast.error(error.message);
           } else {
             toast.error("Erro ao verificar solicitação pendente");
           }
-          setPendingRequest(null);
+          setRequest(null);
         }
       }
     }
 
     fetchPending();
   }, [open, user.userIdentifier, loggedUserIsMe, token]);
-
-  console.log(pendingRequest);
 
   async function handleInviteFriend() {
     try {
@@ -83,7 +83,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
         token,
       });
       toast.success("Solicitação enviada com sucesso!");
-      setPendingRequest(data);
+      setRequest(data);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao enviar");
     } finally {
@@ -92,12 +92,12 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
   }
 
   async function handleCancelRequest() {
-    if (!pendingRequest) return;
+    if (!request) return;
     try {
       setIsLoading(true);
-      await removeFriendRequest({ requestId: pendingRequest.id, token });
+      await removeFriendRequest({ requestId: request.id, token });
       toast.success("Solicitação de amizade removida");
-      setPendingRequest(null);
+      setRequest(null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao cancelar");
     } finally {
@@ -106,13 +106,15 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
   }
 
   async function handleAcceptRequest() {
-    if (!pendingRequest) return;
+    if (!request) return;
     try {
       setIsLoading(true);
-      await acceptFriendRequest({ requestId: pendingRequest.id, token });
+      await acceptFriendRequest({ requestId: request.id, token });
       toast.success("Pedido de amizade aceito!");
-      setPendingRequest(null);
-      setOpen(false);
+      setRequest((prev: any) => ({
+        ...prev,
+        status: "Accepted",
+      }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao aceitar");
     } finally {
@@ -156,78 +158,117 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
         </section>
 
         <section className="w-full flex justify-end space-x-2">
-          {pendingRequest ? (
+          {request ? (
             <>
-              {pendingRequest.senderId === loggedUserId ? (
-                // Se eu envio, eu posso cancelar
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      tabIndex={-1}
-                      size="icon"
-                      variant="outline"
-                      onClick={handleCancelRequest}
-                      disabled={isLoading}
-                    >
-                      <UserRoundX className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Cancelar solicitação</TooltipContent>
-                </Tooltip>
-              ) : (
-                // Se eu recebi eu posso aceitar ou rejeitar
+              {request.status === "Pending" && (
                 <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        tabIndex={-1}
-                        size="icon"
-                        variant="outline"
-                        onClick={handleAcceptRequest}
-                        disabled={isLoading}
-                      >
-                        <UserRoundCheck className="w-4 h-4 text-emerald-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Aceitar solicitação</TooltipContent>
-                  </Tooltip>
+                  {request.senderId === loggedUserId ? (
+                    // Eu enviei e posso cancelar
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          tabIndex={-1}
+                          size="icon"
+                          variant="outline"
+                          onClick={handleCancelRequest}
+                          disabled={isLoading}
+                        >
+                          <UserRoundX className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Cancelar solicitação</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    // Eu recebi e posso aceitar ou rejeitar
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            tabIndex={-1}
+                            size="icon"
+                            variant="outline"
+                            onClick={handleAcceptRequest}
+                            disabled={isLoading}
+                          >
+                            <UserRoundCheck className="w-4 h-4 text-emerald-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Aceitar solicitação</TooltipContent>
+                      </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        tabIndex={-1}
-                        size="icon"
-                        variant="outline"
-                        onClick={handleCancelRequest}
-                        disabled={isLoading}
-                      >
-                        <UserRoundX className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Rejeitar solicitação</TooltipContent>
-                  </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            tabIndex={-1}
+                            size="icon"
+                            variant="outline"
+                            onClick={handleCancelRequest}
+                            disabled={isLoading}
+                          >
+                            <UserRoundX className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Rejeitar solicitação</TooltipContent>
+                      </Tooltip>
+                    </>
+                  )}
                 </>
+              )}
+
+              {request.status === "Accepted" && (
+                <section className="flex flex-col w-full space-y-2">
+                  <div className="flex-1 ml-auto">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          tabIndex={-1}
+                          size="icon"
+                          variant="outline"
+                          onClick={() => {
+                            toast.info(
+                              "Função de remover amigo ainda não implementada"
+                            );
+                          }}
+                        >
+                          <UserRoundX className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Remover amigo</TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  <Separator orientation="horizontal" className="my-2" />
+
+                  <div className="flex w-full justify-end">
+                    <span className="text-muted-foreground/80 text-[11px]">
+                      Vocês se tornaram amigos{" "}
+                      {formatDistanceToNow(new Date(request.createdAt), {
+                        locale: ptBR,
+                        addSuffix: true,
+                      })}{" "}
+                      atrás.
+                    </span>
+                  </div>
+                </section>
               )}
             </>
           ) : (
-            <>
-              {!loggedUserIsMe && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      tabIndex={-1}
-                      size="icon"
-                      variant="outline"
-                      onClick={handleInviteFriend}
-                      disabled={isLoading}
-                    >
-                      <UserRoundPlus className="w-4 h-4 text-emerald-500" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Enviar solicitação de amizade</TooltipContent>
-                </Tooltip>
-              )}
-            </>
+            !loggedUserIsMe && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    tabIndex={-1}
+                    size="icon"
+                    variant="outline"
+                    onClick={handleInviteFriend}
+                    disabled={isLoading}
+                  >
+                    <UserRoundPlus className="w-4 h-4 text-emerald-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Enviar solicitação de amizade</TooltipContent>
+              </Tooltip>
+            )
           )}
         </section>
       </DialogContent>

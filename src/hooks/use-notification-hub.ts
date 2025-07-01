@@ -48,19 +48,19 @@ export function useNotificationHub(token: string | null) {
     };
   }, [token]);
 
-  function markAllAsRead() {
-    setNotifications((n) => n.map((x) => ({ ...x, unread: false })));
-  }
+  // function markAllAsRead() {
+  //   setNotifications((n) => n.map((x) => ({ ...x, unread: false })));
+  // }
 
-  function markAsRead(id: number) {
-    setNotifications((n) =>
-      n.map((x) => (x.id === id ? { ...x, unread: false } : x))
-    );
-  }
+  // function markAsRead(id: number) {
+  //   setNotifications((n) =>
+  //     n.map((x) => (x.id === id ? { ...x, unread: false } : x))
+  //   );
+  // }
 
   return {
     notifications,
-    markAllAsRead,
-    markAsRead,
+    // markAllAsRead,
+    // markAsRead,
   };
 }

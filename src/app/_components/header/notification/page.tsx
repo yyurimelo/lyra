@@ -37,7 +37,7 @@ export function Notification() {
   const { data: session } = useSession();
   const token = session?.user.token;
 
-  const { notifications, markAllAsRead } = useNotificationHub(token!);
+  const { notifications } = useNotificationHub(token!);
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
@@ -63,7 +63,7 @@ export function Notification() {
           {unreadCount > 0 && (
             <button
               className="text-xs font-medium hover:underline"
-              onClick={markAllAsRead}
+              // onClick={markAllAsRead}
             >
               Marcar todas como lidas
             </button>
@@ -81,7 +81,7 @@ export function Notification() {
           </div>
         ) : (
           notifications.map((notification) => {
-            const { id, type, content, unread, data, createdAt } = notification;
+            const { id, type, content, data, createdAt } = notification;
             const Icon = notificationTypeIconMap[type];
 
             return (
@@ -134,11 +134,11 @@ export function Notification() {
                     )}
                   </div>
 
-                  {unread && (
+                  {/* {unread && (
                     <div className="absolute end-0 self-center">
                       <Dot />
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             );
