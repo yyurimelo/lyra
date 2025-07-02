@@ -15,6 +15,7 @@ type NotificationBase = {
 };
 
 export type NotificationDataModel =
-  | (NotificationBase & { type: "InviteFriend"; data: InviteFriendData })
-  | (NotificationBase & { type: "NewMessage"; data: NewMessageData })
-  | (NotificationBase & { type: "Generic"; data?: undefined });
+  | (NotificationBase & { type: 0; data: InviteFriendData })
+  | (NotificationBase & { type: 1; data?: undefined })
+  | (NotificationBase & { type: 2; data: NewMessageData })
+  | (NotificationBase & { type: 3; data?: undefined });

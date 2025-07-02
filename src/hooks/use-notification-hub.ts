@@ -32,7 +32,7 @@ export function useNotificationHub(token: string | null) {
           id: Date.now(),
           content: notification.content,
           unread: true,
-          type: notification.type as NotificationDataModel["type"],
+          type: parseInt(notification.type) as NotificationDataModel["type"],
           data: notification.data,
           createdAt: notification.createdAt,
         };
@@ -48,6 +48,21 @@ export function useNotificationHub(token: string | null) {
     };
   }, [token]);
 
+  function isInviteNotification(data: any): data is { requestId: number } {
+    return data && typeof data.requestId === "number";
+  }
+
+  function removeNotificationByRequestId(requestId: number) {
+    setNotifications((prev) =>
+      prev.filter(
+        (n) =>
+          n.type !== 0 ||
+          !isInviteNotification(n.data) ||
+          n.data.requestId !== requestId
+      )
+    );
+  }
+
   // function markAllAsRead() {
   //   setNotifications((n) => n.map((x) => ({ ...x, unread: false })));
   // }
@@ -60,6 +75,7 @@ export function useNotificationHub(token: string | null) {
 
   return {
     notifications,
+    removeNotificationByRequestId,
     // markAllAsRead,
     // markAsRead,
   };

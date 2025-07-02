@@ -1,10 +1,12 @@
-import { Separator } from "@lyra/components/ui/separator";
 import { HeaderAccount } from "./header-account";
-import { ModeToggle } from "@lyra/components/mode-toggle";
 import { MenuLink } from "./menu-link";
 import { LyraIcon } from "../lyra/lyra-icon";
 import SearchUser from "./search-user";
 import { Notification } from "./notification/page";
+
+// components
+import { ModeToggle } from "@lyra/components/mode-toggle";
+import { Separator } from "@lyra/components/ui/separator";
 
 export function Header() {
   return (

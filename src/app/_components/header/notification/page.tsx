@@ -1,21 +1,44 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
+import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 
-import { Bell } from "@phosphor-icons/react";
+// hooks
+import { useNotificationHub } from "@lyra/hooks/use-notification-hub";
 
-import { Badge } from "@lyra/components/ui/badge";
-import { Button } from "@lyra/components/ui/button";
+// mappers
+import { notificationTypeIconMap } from "@lyra/app/_mappers/notification-type-icon-map";
+import { notificationTypeMap } from "@lyra/app/_mappers/notification-type-map";
+
+// components
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@lyra/components/ui/popover";
-import { useSession } from "next-auth/react";
-import { useNotificationHub } from "@lyra/hooks/use-notification-hub";
-import { notificationTypeIconMap } from "@lyra/app/_mappers/notification-type-icon-map";
-import { notificationTypeMap } from "@lyra/app/_mappers/notification-type-map";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@lyra/components/ui/tooltip";
+import { Badge } from "@lyra/components/ui/badge";
+import { Button } from "@lyra/components/ui/button";
+
+// services
+import {
+  acceptFriendRequest,
+  removeFriendRequest,
+} from "@lyra/app/api/friend-request.service";
+
+// icons
+import { UserRoundCheck, UserRoundX } from "lucide-react";
+import { Bell } from "@phosphor-icons/react";
+
+// -----------------------------------------------------------------------------
 
 function Dot({ className }: { className?: string }) {
   return (
@@ -36,10 +59,38 @@ function Dot({ className }: { className?: string }) {
 export function Notification() {
   const { data: session } = useSession();
   const token = session?.user.token;
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { notifications } = useNotificationHub(token!);
+  const { notifications, removeNotificationByRequestId } = useNotificationHub(
+    token!
+  );
   const unreadCount = notifications.filter((n) => n.unread).length;
 
+  async function handleAcceptRequest(requestId: number) {
+    try {
+      setIsLoading(true);
+      await acceptFriendRequest({ requestId, token });
+      toast.success("Pedido de amizade aceito!");
+      removeNotificationByRequestId(requestId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao aceitar");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleCancelRequest(requestId: number) {
+    try {
+      setIsLoading(true);
+      await removeFriendRequest({ requestId, token });
+      toast.success("Solicitação de amizade removida");
+      removeNotificationByRequestId(requestId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao cancelar");
+    } finally {
+      setIsLoading(false);
+    }
+  }
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -57,17 +108,9 @@ export function Notification() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-1 mr-2">
-        <div className="flex items-baseline justify-between gap-4 px-4 py-2">
+      <PopoverContent className="w-80 p-1 mr-34 shadow-xl/30">
+        <div className="flex items-baseline px-4 py-2">
           <div className="text-sm font-semibold">Notificações</div>
-          {unreadCount > 0 && (
-            <button
-              className="text-xs font-medium hover:underline"
-              // onClick={markAllAsRead}
-            >
-              Marcar todas como lidas
-            </button>
-          )}
         </div>
         <div
           role="separator"
@@ -81,8 +124,10 @@ export function Notification() {
           </div>
         ) : (
           notifications.map((notification) => {
-            const { id, type, content, data, createdAt } = notification;
+            const { id, type, content, createdAt, data } = notification;
             const Icon = notificationTypeIconMap[type];
+
+            const requestId = type === 0 ? data?.requestId : null;
 
             return (
               <div
@@ -91,55 +136,62 @@ export function Notification() {
               >
                 <div className="relative flex items-start gap-3 pe-3">
                   <div className="flex-1 space-y-1">
-                    {type === "InviteFriend" ? (
-                      <button
-                        className="text-left text-foreground/80 after:absolute after:inset-0"
-                        onClick={() => {
-                          if (data?.requestId) {
-                            console.log(
-                              "Abrir detalhes da solicitação:",
-                              data.requestId
-                            );
-                          }
-                        }}
-                      >
-                        {content}
-                      </button>
-                    ) : (
-                      <div className="flex space-x-2 w-full">
-                        <Icon
-                          size={21}
-                          className="text-primary flex-shrink-0"
-                        />
-                        <div className="flex flex-col gap-[2px] flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-primary">
-                              {notificationTypeMap[type] || "Notificação"}
-                            </span>
-                            <Dot className="text-muted-foreground/50 size-[3px]" />
-                            <span className="text-muted-foreground/80 text-[11px]">
-                              {createdAt
-                                ? formatDistanceToNow(new Date(createdAt), {
-                                    locale: ptBR,
-                                    addSuffix: true,
-                                  })
-                                : "Agora"}
-                            </span>
-                          </div>
-                          <span className="text-sm text-foreground break-words">
-                            {content || "Sem conteúdo"}
+                    <div className="flex space-x-2 w-full">
+                      <Icon size={21} className="text-primary flex-shrink-0" />
+                      <div className="flex flex-col gap-[2px] flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-primary">
+                            {notificationTypeMap[type] || "Notificação"}
+                          </span>
+                          <Dot className="text-muted-foreground/50 size-[3px]" />
+                          <span className="text-muted-foreground/80 text-[11px]">
+                            {createdAt
+                              ? formatDistanceToNow(new Date(createdAt), {
+                                  locale: ptBR,
+                                  addSuffix: true,
+                                })
+                              : "Agora"}
                           </span>
                         </div>
+                        <span className="text-sm text-foreground break-words">
+                          {content || "Sem conteúdo"}
+                        </span>
                       </div>
-                    )}
-                  </div>
-
-                  {/* {unread && (
-                    <div className="absolute end-0 self-center">
-                      <Dot />
                     </div>
-                  )} */}
+                  </div>
                 </div>
+                {type === 0 && (
+                  <div className="flex space-x-2 w-full justify-end">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={"ghost"}
+                          size={"icon"}
+                          className="text-emerald-500"
+                          onClick={() => handleAcceptRequest(Number(requestId))}
+                          disabled={isLoading}
+                        >
+                          <UserRoundCheck />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Aceitar solicitação</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={"ghost"}
+                          size={"icon"}
+                          className="text-red-500"
+                          onClick={() => handleCancelRequest(Number(requestId))}
+                          disabled={isLoading}
+                        >
+                          <UserRoundX />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Rejeitar solicitação</TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
               </div>
             );
           })

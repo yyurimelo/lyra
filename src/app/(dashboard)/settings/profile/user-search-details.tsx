@@ -1,21 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
-import {
-  sendInviteFriend,
-  // removeFriendRequest,
-  checkPendingFriendRequest,
-  acceptFriendRequest,
-  removeFriendRequest,
-} from "@lyra/app/api/friend-request.service";
-
-import { Avatar } from "@lyra/components/ui/avatar";
-import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
-import { Button } from "@lyra/components/ui/button";
+// components
 import {
   Dialog,
   DialogContent,
@@ -23,23 +14,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@lyra/components/ui/dialog";
-import { Separator } from "@lyra/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@lyra/components/ui/tooltip";
+import { Separator } from "@lyra/components/ui/separator";
+import { Avatar } from "@lyra/components/ui/avatar";
+import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
+import { Button } from "@lyra/components/ui/button";
 
+// types
 import { UserDataModel } from "@lyra/types/user/user-data";
 import { UserRoundPlus, UserRoundX, UserRoundCheck } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+
+// services
+import { removeFriendForUser } from "@lyra/app/api/user.service";
+import {
+  sendInviteFriend,
+  checkPendingFriendRequest,
+  acceptFriendRequest,
+  removeFriendRequest,
+} from "@lyra/app/api/friend-request.service";
+
+// -----------------------------------------------------------------------------
 
 type Props = {
   open: boolean;
   setOpen: React.Dispatch<boolean>;
   user: UserDataModel;
 };
+
+// -----------------------------------------------------------------------------
 
 export function UserSearchDetails({ open, setOpen, user }: Props) {
   const { data: session } = useSession();
@@ -119,6 +125,21 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
       toast.error(error instanceof Error ? error.message : "Erro ao aceitar");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleRemoveFriend() {
+    try {
+      await removeFriendForUser({
+        userIdentifier: user.userIdentifier,
+        token,
+      });
+      toast.success("Amigo removido com sucesso!");
+      setRequest(null);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao remover amigo"
+      );
     }
   }
 
@@ -224,11 +245,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
                           tabIndex={-1}
                           size="icon"
                           variant="outline"
-                          onClick={() => {
-                            toast.info(
-                              "Função de remover amigo ainda não implementada"
-                            );
-                          }}
+                          onClick={handleRemoveFriend}
                         >
                           <UserRoundX className="w-4 h-4 text-red-500" />
                         </Button>

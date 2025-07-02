@@ -3,6 +3,7 @@ import { http } from "@lyra/config/http-config/page";
 // models
 import { UserDataModel } from "@lyra/types/user/user-data";
 import { UserFormModel } from "@lyra/types/user/user-form";
+import { UserRemoveModel } from "@lyra/types/user/user-remove";
 import { UserUpdateModel } from "@lyra/types/user/user-update";
 
 const prefix = `${http}/user`;
@@ -91,4 +92,30 @@ export async function searchUserByUserIdentifier(
 
   const data = await response.json();
   return data;
+}
+
+export async function removeFriendForUser({
+  userIdentifier,
+  token,
+}: UserRemoveModel & { token: string | undefined }) {
+  try {
+    const response = await fetch(
+      `${prefix}/remove/friend?userIdentifier=${userIdentifier}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Erro ao remover o amigo.");
+    }
+    return data;
+  } catch (error) {
+    throw error;
+  }
 }

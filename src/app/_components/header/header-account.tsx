@@ -1,4 +1,6 @@
 "use client";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 // components
 import { Avatar } from "@lyra/components/ui/avatar";
@@ -13,10 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@lyra/components/ui/dropdown-menu";
-import { CircleUser, LogOut } from "lucide-react";
 
-import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
+// icons
+import { CircleUser, LogOut } from "lucide-react";
 
 export function HeaderAccount() {
   const { data: loggedUser } = useSession();
