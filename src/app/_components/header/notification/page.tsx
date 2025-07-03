@@ -108,7 +108,7 @@ export function Notification() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-1 mr-34 shadow-xl/30">
+      <PopoverContent className="w-80 p-1 mr-28 shadow-xl/30">
         <div className="flex items-baseline px-4 py-2">
           <div className="text-sm font-semibold">Notificações</div>
         </div>
@@ -165,6 +165,7 @@ export function Notification() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
+                          tabIndex={-1}
                           variant={"ghost"}
                           size={"icon"}
                           className="text-emerald-500"
@@ -179,6 +180,7 @@ export function Notification() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
+                          tabIndex={-1}
                           variant={"ghost"}
                           size={"icon"}
                           className="text-red-500"

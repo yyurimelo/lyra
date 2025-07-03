@@ -1,8 +1,8 @@
-import { ChevronRight, User2 } from "lucide-react";
+import { ChevronRight, User2, Users } from "lucide-react";
 
 import { AsideLink } from "@lyra/app/_components/aside-link";
 
-export default function SettingsLayout({
+export default async function SettingsLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -23,6 +23,11 @@ export default function SettingsLayout({
               <AsideLink href="/settings/profile">
                 <User2 className="mr-2 size-4 text-primary" />
                 Perfil
+                <ChevronRight className="h-4 w-4 ml-auto" />
+              </AsideLink>
+              <AsideLink href="/settings/friend-requests">
+                <Users className="mr-2 size-4 text-primary" />
+                Solicitações de amizade
                 <ChevronRight className="h-4 w-4 ml-auto" />
               </AsideLink>
             </div>

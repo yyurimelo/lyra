@@ -3,6 +3,7 @@ import {
   type NextRequest,
   NextResponse,
 } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 const publicRoutes = [
   {
@@ -21,10 +22,15 @@ const publicRoutes = [
 
 const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = "/sign-in";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const publicRoute = publicRoutes.find((route) => route.path === path);
-  const authToken = request.cookies.get("next-auth.session-token");
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const authToken = token;
 
   if (!authToken && publicRoute) {
     return NextResponse.next();
