@@ -35,26 +35,10 @@ import {
 } from "@lyra/app/api/friend-request.service";
 
 // icons
-import { UserRoundCheck, UserRoundX } from "lucide-react";
+import { Dot, UserRoundCheck, UserRoundX } from "lucide-react";
 import { Bell } from "@phosphor-icons/react";
 
 // -----------------------------------------------------------------------------
-
-function Dot({ className }: { className?: string }) {
-  return (
-    <svg
-      width="6"
-      height="6"
-      fill="currentColor"
-      viewBox="0 0 6 6"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
-    >
-      <circle cx="3" cy="3" r="3" />
-    </svg>
-  );
-}
 
 export function Notification() {
   const { data: session } = useSession();
@@ -139,11 +123,11 @@ export function Notification() {
                     <div className="flex space-x-2 w-full">
                       <Icon size={21} className="text-primary flex-shrink-0" />
                       <div className="flex flex-col gap-[2px] flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center">
                           <span className="text-[11px] text-primary">
                             {notificationTypeMap[type] || "Notificação"}
                           </span>
-                          <Dot className="text-muted-foreground/50 size-[3px]" />
+                          <Dot className="text-muted-foreground/50 size-[15px]" />
                           <span className="text-muted-foreground/80 text-[11px]">
                             {createdAt
                               ? formatDistanceToNow(new Date(createdAt), {

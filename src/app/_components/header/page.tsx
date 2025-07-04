@@ -31,7 +31,9 @@ export default function Header() {
       <div>
         <nav className="flex items-center space-x-2 lg:space-x-3">
           <MenuLink href="/">Dashboard</MenuLink>
-          <MenuLink href="/settings/profile">Configurações</MenuLink>
+          <MenuLink href="/settings/" shouldMatchExact={false}>
+            Configurações
+          </MenuLink>
         </nav>
       </div>
     </div>

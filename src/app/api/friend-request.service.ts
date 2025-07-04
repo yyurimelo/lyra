@@ -101,3 +101,24 @@ export async function acceptFriendRequest({
     throw error;
   }
 }
+
+export async function getFriendRequests(token?: string) {
+  try {
+    const response = await fetch(`${prefix}/get/all/requests`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(
+        data?.message || "Erro ao buscar solicitações de amizade"
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+}
