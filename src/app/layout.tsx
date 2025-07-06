@@ -1,8 +1,6 @@
 import "./globals.css";
-import { ThemeProvider } from "@lyra/components/theme-provider";
-import { Toaster } from "@lyra/components/ui/sonner";
-import AuthProvider from "@lyra/components/providers/session-provider";
 import { Metadata } from "next";
+import RootProviders from "@lyra/components/providers/root-provider";
 
 export const metadata: Metadata = {
   title: "LyraCHAT",
@@ -18,17 +16,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body>
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+        <RootProviders>{children}</RootProviders>
       </body>
     </html>
   );

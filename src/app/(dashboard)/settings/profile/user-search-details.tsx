@@ -2,7 +2,6 @@
 "use client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -36,6 +35,8 @@ import {
   acceptFriendRequest,
   removeFriendRequest,
 } from "@lyra/app/api/friend-request.service";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient } from "@lyra/config/react-query-config/page";
 
 // -----------------------------------------------------------------------------
 
@@ -53,94 +54,116 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
   const loggedUserId = session?.user.userIdentifier;
   const token = session?.user.token;
 
-  const [request, setRequest] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
   const loggedUserIsMe = loggedUserId === user.userIdentifier;
 
-  useEffect(() => {
-    async function fetchPending() {
-      if (!loggedUserIsMe && open) {
-        try {
-          const request = await checkPendingFriendRequest({
-            userIdentifier: user.userIdentifier,
-            token,
-          });
-          setRequest(request);
-        } catch (error) {
-          if (error instanceof Error) {
-            toast.error(error.message);
-          } else {
-            toast.error("Erro ao verificar solicitação pendente");
-          }
-          setRequest(null);
-        }
-      }
-    }
-
-    fetchPending();
-  }, [open, user.userIdentifier, loggedUserIsMe, token]);
-
-  async function handleInviteFriend() {
-    try {
-      setIsLoading(true);
-      const data = await sendInviteFriend({
+  const { data: request, isPending } = useQuery({
+    queryKey: ["user-search-details", user.userIdentifier],
+    queryFn: () =>
+      checkPendingFriendRequest({
         userIdentifier: user.userIdentifier,
         token,
+      }),
+    enabled: !loggedUserIsMe && open,
+  });
+
+  const { mutateAsync: sendInviteFriendFn } = useMutation({
+    mutationFn: sendInviteFriend,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user-search-details", user.userIdentifier],
       });
-      toast.success("Solicitação enviada com sucesso!");
-      setRequest(data);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao enviar");
-    } finally {
-      setIsLoading(false);
-    }
-  }
+      toast.success("Solicitação de amizade enviada com sucesso!");
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao enviar solicitação de amizade");
+      }
+    },
+  });
 
-  async function handleCancelRequest() {
-    if (!request) return;
-    try {
-      setIsLoading(true);
-      await removeFriendRequest({ requestId: request.id, token });
-      toast.success("Solicitação de amizade removida");
-      setRequest(null);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao cancelar");
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const { mutateAsync: acceptRequestFn } = useMutation({
+    mutationFn: acceptFriendRequest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user-search-details", user.userIdentifier],
+      });
+      toast.success("Solicitação de amizade aceita com sucesso!");
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao aceitar solicitação de amizade");
+      }
+    },
+  });
 
-  async function handleAcceptRequest() {
-    if (!request) return;
-    try {
-      setIsLoading(true);
-      await acceptFriendRequest({ requestId: request.id, token });
-      toast.success("Pedido de amizade aceito!");
-      setRequest((prev: any) => ({
-        ...prev,
-        status: "Accepted",
-      }));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao aceitar");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleRemoveFriend() {
-    try {
-      await removeFriendForUser({
-        userIdentifier: user.userIdentifier,
-        token,
+  const { mutateAsync: removeFriendFn } = useMutation({
+    mutationFn: removeFriendForUser,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user-search-details", user.userIdentifier],
       });
       toast.success("Amigo removido com sucesso!");
-      setRequest(null);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Erro ao remover amigo"
-      );
-    }
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao remover amigo");
+      }
+    },
+  });
+
+  const { mutateAsync: removeRequestFn } = useMutation({
+    mutationFn: removeFriendRequest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user-search-details", user.userIdentifier],
+      });
+      toast.success("Solicitação de amizade removida com sucesso!");
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao remover solicitação de amizade");
+      }
+    },
+  });
+
+  // Cancelar solicitação de amizade
+  async function handleCancelRequest() {
+    await removeRequestFn({
+      requestId: request.id,
+      token,
+    });
+  }
+
+  // Remover amigo
+  async function handleRemoveFriend() {
+    await removeFriendFn({
+      userIdentifier: user.userIdentifier,
+      token,
+    });
+  }
+
+  // Aceitar solicitação de amizade
+  async function handleAcceptRequest() {
+    await acceptRequestFn({
+      requestId: request.id,
+      token,
+    });
+  }
+
+  // Enviar solicitação de amizade
+  async function handleInviteFriend() {
+    await sendInviteFriendFn({
+      userIdentifier: user.userIdentifier,
+      token,
+    });
   }
 
   return (
@@ -192,7 +215,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
                           size="icon"
                           variant="outline"
                           onClick={handleCancelRequest}
-                          disabled={isLoading}
+                          disabled={isPending}
                         >
                           <UserRoundX className="w-4 h-4 text-red-500" />
                         </Button>
@@ -209,7 +232,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
                             size="icon"
                             variant="outline"
                             onClick={handleAcceptRequest}
-                            disabled={isLoading}
+                            disabled={isPending}
                           >
                             <UserRoundCheck className="w-4 h-4 text-emerald-500" />
                           </Button>
@@ -224,7 +247,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
                             size="icon"
                             variant="outline"
                             onClick={handleCancelRequest}
-                            disabled={isLoading}
+                            disabled={isPending}
                           >
                             <UserRoundX className="w-4 h-4 text-red-500" />
                           </Button>
@@ -278,7 +301,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
                     size="icon"
                     variant="outline"
                     onClick={handleInviteFriend}
-                    disabled={isLoading}
+                    disabled={isPending}
                   >
                     <UserRoundPlus className="w-4 h-4 text-emerald-500" />
                   </Button>
