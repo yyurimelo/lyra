@@ -1,8 +1,10 @@
 "use client";
+
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { getUser } from "@lyra/app/api/user.service";
 import { oklchToHex } from "@lyra/utils/color";
-import { useSession } from "next-auth/react";
+import { changeUserAppearanceSettings } from "@lyra/utils/change-user-appearance";
 
 export default function AppearanceUserSettings() {
   const { data: session } = useSession();
@@ -10,54 +12,34 @@ export default function AppearanceUserSettings() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let userData: any = null;
-
-    async function fetchColors() {
+    async function applyUserAppearance() {
       try {
-        userData = await getUser(session!.user.id);
+        const userData = await getUser(session!.user.id);
 
-        // Cor primária
-        if (userData?.appearancePrimaryColor) {
-          const hexColor = oklchToHex(String(userData.appearancePrimaryColor));
-          document.documentElement.style.setProperty("--primary", hexColor);
-        } else {
-          document.documentElement.style.removeProperty("--primary");
-        }
-
-        applyTextColor();
+        changeUserAppearanceSettings({
+          appearancePrimaryColor: userData?.appearancePrimaryColor
+            ? oklchToHex(userData.appearancePrimaryColor)
+            : undefined,
+          appearanceTextPrimaryLight:
+            userData?.appearanceTextPrimaryLight ?? undefined,
+          appearanceTextPrimaryDark:
+            userData?.appearanceTextPrimaryDark ?? undefined,
+        });
       } catch (error) {
-        console.error("Erro ao aplicar cores:", error);
+        console.error("Erro ao aplicar aparência do usuário:", error);
       }
     }
 
-    function applyTextColor() {
-      const isDark = document.documentElement.classList.contains("dark");
+    // Atualiza ao montar
+    applyUserAppearance();
 
-      const textColor = isDark
-        ? userData?.appearanceTextPrimaryDark
-        : userData?.appearanceTextPrimaryLight;
-
-      if (textColor) {
-        document.documentElement.style.setProperty(
-          "--primary-foreground",
-          textColor
-        );
-      } else {
-        document.documentElement.style.removeProperty("--primary-foreground");
-      }
-    }
-
-    const observer = new MutationObserver(() => {
-      applyTextColor(); // sempre que a classe do <html> mudar
-    });
+    // Atualiza ao mudar tema
+    const observer = new MutationObserver(() => applyUserAppearance());
 
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
-
-    fetchColors();
 
     return () => observer.disconnect();
   }, [session]);

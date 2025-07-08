@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useId } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +31,8 @@ import { InputPassword } from "./ui/input-passowrd";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { GoogleAuthButton } from "@lyra/app/_components/google-auth/page";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@lyra/config/react-query-config/page";
 
 // -----------------------------------------------------------------------------
 
@@ -57,7 +59,6 @@ type CreateUserForm = z.infer<typeof createUserForm>;
 
 export function RegisterForm() {
   const id = useId();
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<CreateUserForm>({
@@ -70,13 +71,16 @@ export function RegisterForm() {
     },
   });
 
-  async function handleSubmit(data: CreateUserForm) {
-    try {
-      setIsLoading(true);
-      await createUser(data);
+  const { mutateAsync: createUserFn, isPending } = useMutation({
+    mutationFn: createUser,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user"],
+      });
       toast.success("Usuário criado com sucesso!");
       router.push("/sign-in");
-    } catch (error) {
+    },
+    onError: (error) => {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
@@ -84,9 +88,13 @@ export function RegisterForm() {
           "Ocorreu um erro ao criar o usuário. Por favor, tente novamente."
         );
       }
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  async function handleSubmit(data: CreateUserForm) {
+    await createUserFn({
+      ...data,
+    });
   }
 
   return (
@@ -174,15 +182,15 @@ export function RegisterForm() {
               />
 
               <Button
-                disabled={isLoading}
+                disabled={isPending}
                 form={id}
                 type="submit"
                 className="w-full"
               >
-                {isLoading && (
+                {isPending && (
                   <LoaderCircle className="w-4 h-4 text-primary-foreground animate-spin mr-2" />
                 )}
-                {isLoading ? isLoading : "Cadastrar"}
+                {isPending ? isPending : "Cadastrar"}
               </Button>
               <div className="text-center text-sm">
                 Já tem uma conta?{" "}

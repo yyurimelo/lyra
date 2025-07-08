@@ -3,10 +3,13 @@ import { useSession } from "next-auth/react";
 import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { changeUserAppearanceSettings } from "@lyra/utils/change-user-appearance";
 import { hexToOKLCH, oklchToHex } from "@lyra/utils/color";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient } from "@lyra/config/react-query-config/page";
 
 // helpers
-import { isHexColor } from "@lyra/helpers/hex-format";
+import { formatHexInput } from "@lyra/helpers/hex-format";
 
 // components
 import {
@@ -20,7 +23,6 @@ import { Avatar } from "@lyra/components/ui/avatar";
 import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
 import { Separator } from "@lyra/components/ui/separator";
 import { z } from "zod";
-import { getUser, updateUser } from "@lyra/app/api/user.service";
 import { toast } from "sonner";
 import {
   Form,
@@ -40,6 +42,9 @@ import { ClickCopy } from "@lyra/components/ui/click-copy";
 // icons
 import { Check, LoaderCircle, Pencil, X } from "lucide-react";
 
+// services
+import { getUser, updateUser } from "@lyra/app/api/user.service";
+
 // -----------------------------------------------------------------------------
 
 const profileFormSchema = z.object({
@@ -56,7 +61,6 @@ type ProfileFormSchema = z.infer<typeof profileFormSchema>;
 
 export default function SettingsProfile() {
   const id = useId();
-  const [isLoading, setIsLoading] = useState(false);
   const [edit, setEdit] = useState(false);
   const { data: loggedUser } = useSession();
 
@@ -66,90 +70,89 @@ export default function SettingsProfile() {
       name: "",
       description: "",
       appearancePrimaryColor: "",
-      appearanceTextPrimaryLight: "",
       appearanceTextPrimaryDark: "",
+      appearanceTextPrimaryLight: "",
     },
   });
 
-  async function loadUserData() {
-    if (!loggedUser?.user?.id) return;
-    try {
-      const user = await getUser(loggedUser.user.id);
-      form.reset({
-        name: user.name,
-        description: user.description || "",
-        appearancePrimaryColor: user.appearancePrimaryColor
-          ? oklchToHex(String(user.appearancePrimaryColor))
-          : "",
-        appearanceTextPrimaryLight:
-          user.appearanceTextPrimaryLight || undefined,
-        appearanceTextPrimaryDark: user.appearanceTextPrimaryDark || undefined,
-      });
-    } catch (err) {
-      console.error("Erro ao buscar usuário:", err);
-      toast.error("Erro ao carregar dados do usuário.");
-    }
-  }
+  const { data: user } = useQuery({
+    queryKey: ["user-details", loggedUser?.user.id],
+    queryFn: () => getUser(loggedUser!.user.id),
+    enabled: loggedUser?.user.id !== null,
+  });
 
   useEffect(() => {
-    loadUserData();
-  }, [loggedUser?.user!.id]);
+    if (user) {
+      form.reset({
+        name: user.name || "",
+        description: user.description || "",
+        appearancePrimaryColor: user.appearancePrimaryColor
+          ? oklchToHex(user.appearancePrimaryColor)
+          : "",
+        appearanceTextPrimaryLight: user.appearanceTextPrimaryLight || null,
+        appearanceTextPrimaryDark: user.appearanceTextPrimaryDark || null,
+      });
+    }
+  }, [user, form]);
 
   function handleEdit() {
     setEdit(true);
   }
 
-  async function handleCancelEdit() {
-    await loadUserData();
+  function handleCancelEdit() {
     setEdit(false);
+    form.reset({
+      name: user?.name || "",
+      description: user?.description || "",
+      appearancePrimaryColor: user?.appearancePrimaryColor
+        ? oklchToHex(user.appearancePrimaryColor)
+        : "",
+      appearanceTextPrimaryLight: user?.appearanceTextPrimaryLight || null,
+      appearanceTextPrimaryDark: user?.appearanceTextPrimaryDark || null,
+    });
   }
 
-  async function handleSubmit(data: ProfileFormSchema) {
-    setIsLoading(true);
-    try {
-      await updateUser({
-        id: loggedUser!.user.id,
-        name: data.name,
-        description: data.description,
-        appearancePrimaryColor: data.appearancePrimaryColor?.trim()
-          ? hexToOKLCH(data.appearancePrimaryColor)
-          : undefined,
-        appearanceTextPrimaryLight:
-          data.appearanceTextPrimaryLight ?? undefined,
-        appearanceTextPrimaryDark: data.appearanceTextPrimaryDark ?? undefined,
-        token: loggedUser?.user.token,
+  const { mutateAsync: updateUserFn, isPending } = useMutation({
+    mutationFn: updateUser,
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user-details", loggedUser?.user.id],
       });
 
-      document.documentElement.style.setProperty(
-        "--primary",
-        data.appearancePrimaryColor || ""
-      );
-
-      const isDark = document.documentElement.classList.contains("dark");
-
-      if (isDark) {
-        document.documentElement.style.setProperty(
-          "--primary-foreground",
-          data.appearanceTextPrimaryDark || "#ffffff"
-        );
-      } else {
-        document.documentElement.style.setProperty(
-          "--primary-foreground",
-          data.appearanceTextPrimaryLight || "#000000"
-        );
-      }
+      changeUserAppearanceSettings({
+        appearancePrimaryColor: variables.appearancePrimaryColor
+          ? oklchToHex(variables.appearancePrimaryColor)
+          : undefined,
+        appearanceTextPrimaryLight:
+          variables.appearanceTextPrimaryLight ?? undefined,
+        appearanceTextPrimaryDark:
+          variables.appearanceTextPrimaryDark ?? undefined,
+      });
 
       setEdit(false);
       toast.success("Perfil atualizado com sucesso!");
-    } catch (error) {
+    },
+    onError: (error) => {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("Ocorreu um erro ao atualizar o perfil.");
       }
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  async function handleSubmit(data: ProfileFormSchema) {
+    await updateUserFn({
+      id: loggedUser!.user.id,
+      name: data.name,
+      description: data.description,
+      appearancePrimaryColor: data.appearancePrimaryColor?.trim()
+        ? hexToOKLCH(data.appearancePrimaryColor)
+        : undefined,
+      appearanceTextPrimaryLight: data.appearanceTextPrimaryLight ?? undefined,
+      appearanceTextPrimaryDark: data.appearanceTextPrimaryDark ?? undefined,
+      token: loggedUser?.user.token,
+    });
   }
 
   function abbreviateUserIdentifier(identifier: string) {
@@ -184,9 +187,9 @@ export default function SettingsProfile() {
                     variant="ghost"
                     className="text-emerald-500 hover:text-emerald-500"
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isPending}
                   >
-                    {isLoading ? (
+                    {isPending ? (
                       <span className="flex items-center gap-2">
                         <LoaderCircle className="w-4 h-4 animate-spin" />
                         Atualizando
@@ -199,7 +202,7 @@ export default function SettingsProfile() {
                     )}
                   </Button>
 
-                  {!isLoading && (
+                  {!isPending && (
                     <Button
                       variant="ghost"
                       className="text-red-500 hover:text-red-500"
@@ -369,9 +372,8 @@ export default function SettingsProfile() {
                           type="text"
                           {...field}
                           onChange={(e) => {
-                            const { value } = e.target;
-                            e.target.value = isHexColor(value);
-                            field.onChange(e);
+                            const formatted = formatHexInput(e.target.value);
+                            field.onChange(formatted);
                           }}
                           disabled={!edit}
                         />

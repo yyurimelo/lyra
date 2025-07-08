@@ -3,7 +3,6 @@
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
 import { useSession } from "next-auth/react";
 
 // hooks
@@ -37,44 +36,69 @@ import {
 // icons
 import { Dot, UserRoundCheck, UserRoundX } from "lucide-react";
 import { Bell } from "@phosphor-icons/react";
+import { queryClient, useMutation } from "@lyra/config/react-query-config/page";
 
 // -----------------------------------------------------------------------------
 
 export function Notification() {
   const { data: session } = useSession();
   const token = session?.user.token;
-  const [isLoading, setIsLoading] = useState(false);
 
   const { notifications, removeNotificationByRequestId } = useNotificationHub(
     token!
   );
   const unreadCount = notifications.filter((n) => n.unread).length;
 
+  const { mutateAsync: acceptRequestFn, isPending: isLoading } = useMutation({
+    mutationFn: acceptFriendRequest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["request"],
+      });
+      toast.success("Solicitação de amizade aceita com sucesso!");
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao aceitar solicitação de amizade");
+      }
+    },
+  });
+
+  const { mutateAsync: removeRequestFn } = useMutation({
+    mutationFn: removeFriendRequest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["request"],
+      });
+      toast.success("Solicitação de amizade rejeitada!");
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao remover solicitação de amizade");
+      }
+    },
+  });
+
   async function handleAcceptRequest(requestId: number) {
-    try {
-      setIsLoading(true);
-      await acceptFriendRequest({ requestId, token });
-      toast.success("Pedido de amizade aceito!");
-      removeNotificationByRequestId(requestId);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao aceitar");
-    } finally {
-      setIsLoading(false);
-    }
+    await acceptRequestFn({
+      requestId,
+      token,
+    });
+    removeNotificationByRequestId(requestId);
   }
 
   async function handleCancelRequest(requestId: number) {
-    try {
-      setIsLoading(true);
-      await removeFriendRequest({ requestId, token });
-      toast.success("Solicitação de amizade removida");
-      removeNotificationByRequestId(requestId);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao cancelar");
-    } finally {
-      setIsLoading(false);
-    }
+    await removeRequestFn({
+      requestId,
+      token,
+    });
+    removeNotificationByRequestId(requestId);
   }
+
   return (
     <Popover>
       <PopoverTrigger asChild>

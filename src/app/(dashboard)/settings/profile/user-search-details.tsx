@@ -57,7 +57,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
   const loggedUserIsMe = loggedUserId === user.userIdentifier;
 
   const { data: request, isPending } = useQuery({
-    queryKey: ["user-search-details", user.userIdentifier],
+    queryKey: ["request", user.userIdentifier],
     queryFn: () =>
       checkPendingFriendRequest({
         userIdentifier: user.userIdentifier,
@@ -70,7 +70,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
     mutationFn: sendInviteFriend,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["user-search-details", user.userIdentifier],
+        queryKey: ["request", user.userIdentifier],
       });
       toast.success("Solicitação de amizade enviada com sucesso!");
     },
@@ -87,7 +87,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
     mutationFn: acceptFriendRequest,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["user-search-details", user.userIdentifier],
+        queryKey: ["request", user.userIdentifier],
       });
       toast.success("Solicitação de amizade aceita com sucesso!");
     },
@@ -104,7 +104,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
     mutationFn: removeFriendForUser,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["user-search-details", user.userIdentifier],
+        queryKey: ["request", user.userIdentifier],
       });
       toast.success("Amigo removido com sucesso!");
     },
@@ -121,7 +121,7 @@ export function UserSearchDetails({ open, setOpen, user }: Props) {
     mutationFn: removeFriendRequest,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["user-search-details", user.userIdentifier],
+        queryKey: ["request", user.userIdentifier],
       });
       toast.success("Solicitação de amizade removida com sucesso!");
     },
