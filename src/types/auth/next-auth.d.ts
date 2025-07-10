@@ -8,6 +8,7 @@ declare module "next-auth" {
     appearancePrimaryColor?: string;
     appearanceTextPrimaryLight?: string;
     appearanceTextPrimaryDark?: string;
+    avatarUser?: string;
     userIdentifier: string;
     token: string;
   }

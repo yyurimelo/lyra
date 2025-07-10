@@ -18,7 +18,7 @@ import { Avatar } from "@lyra/components/ui/avatar";
 import { AvatarImageUser } from "@lyra/components/ui/avatar-image-user";
 
 // services
-import { searchUserByUserIdentifier } from "@lyra/app/api/user.service";
+import { searchUserByUserIdentifier } from "@lyra/app/api/services/user.service";
 import { UserSearchDetails } from "@lyra/app/(dashboard)/settings/profile/user-search-details";
 
 export default function SearchUser() {

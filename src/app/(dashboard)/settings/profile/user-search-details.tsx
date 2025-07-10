@@ -28,13 +28,13 @@ import { UserDataModel } from "@lyra/types/user/user-data";
 import { UserRoundPlus, UserRoundX, UserRoundCheck } from "lucide-react";
 
 // services
-import { removeFriendForUser } from "@lyra/app/api/user.service";
+import { removeFriendForUser } from "@lyra/app/api/services/user.service";
 import {
   sendInviteFriend,
   checkPendingFriendRequest,
   acceptFriendRequest,
   removeFriendRequest,
-} from "@lyra/app/api/friend-request.service";
+} from "@lyra/app/api/services/friend-request.service";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@lyra/config/react-query-config/page";
 

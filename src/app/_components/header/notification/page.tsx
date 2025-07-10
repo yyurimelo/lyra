@@ -31,7 +31,7 @@ import { Button } from "@lyra/components/ui/button";
 import {
   acceptFriendRequest,
   removeFriendRequest,
-} from "@lyra/app/api/friend-request.service";
+} from "@lyra/app/api/services/friend-request.service";
 
 // icons
 import { Dot, UserRoundCheck, UserRoundX } from "lucide-react";
@@ -53,7 +53,7 @@ export function Notification() {
     mutationFn: acceptFriendRequest,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["request"],
+        queryKey: ["request", session?.user.id],
       });
       toast.success("Solicitação de amizade aceita com sucesso!");
     },
@@ -70,7 +70,7 @@ export function Notification() {
     mutationFn: removeFriendRequest,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["request"],
+        queryKey: ["request", session?.user.id],
       });
       toast.success("Solicitação de amizade rejeitada!");
     },

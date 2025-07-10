@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { getUser } from "@lyra/app/api/user.service";
+import { getUser } from "@lyra/app/api/services/user.service";
 import { oklchToHex } from "@lyra/utils/color";
 import { changeUserAppearanceSettings } from "@lyra/utils/change-user-appearance";
 

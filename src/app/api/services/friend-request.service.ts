@@ -1,4 +1,5 @@
 import { http } from "@lyra/config/http-config/page";
+import { FriendRequestDataModel } from "@lyra/types/friend-request/friend-request-data";
 
 //models
 import { FriendRequestFormModel } from "@lyra/types/friend-request/friend-request-form";
@@ -102,7 +103,9 @@ export async function acceptFriendRequest({
   }
 }
 
-export async function getFriendRequests(token?: string) {
+export async function getFriendRequests(
+  token?: string
+): Promise<FriendRequestDataModel[]> {
   try {
     const response = await fetch(`${prefix}/get/all/requests`, {
       headers: {

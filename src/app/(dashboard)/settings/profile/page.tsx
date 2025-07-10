@@ -43,7 +43,7 @@ import { ClickCopy } from "@lyra/components/ui/click-copy";
 import { Check, LoaderCircle, Pencil, X } from "lucide-react";
 
 // services
-import { getUser, updateUser } from "@lyra/app/api/user.service";
+import { getUser, updateUser } from "@lyra/app/api/services/user.service";
 
 // -----------------------------------------------------------------------------
 
